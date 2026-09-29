@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\Status\StatusMailConfig;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
@@ -18,6 +19,10 @@ class ForgotPasswordController extends Controller
     public function sendResetLinkEmail(Request $request): RedirectResponse
     {
         $request->validate(['email' => ['required', 'email']]);
+
+        // Password resets must honor the DB-configured mailer (Mailpit/SMTP),
+        // not the .env fallback.
+        StatusMailConfig::apply();
 
         $status = Password::sendResetLink($request->only('email'));
 

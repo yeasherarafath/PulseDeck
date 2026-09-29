@@ -53,6 +53,12 @@ function initPolling(root) {
                 label.textContent = data.status_label;
             }
 
+            const serverTime = document.getElementById('server-time');
+
+            if (serverTime && data.server_time) {
+                serverTime.textContent = data.server_time;
+            }
+
             const dot = document.querySelector('#overall-dot .status-dot');
 
             if (dot) {

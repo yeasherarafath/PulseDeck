@@ -132,6 +132,8 @@ class PublicStatusService
             'status_label' => $this->overallLabel($overall),
             'updated_at' => now()->toIso8601String(),
             'updated_human' => now()->diffForHumans(),
+            'server_time' => setting_time(now(), 'M j, Y H:i').' '.setting_timezone(),
+            'server_tz' => setting_timezone(),
             'groups' => $groupRows,
             'incidents' => StatusIncident::active()->with('service')->latest('started_at')->limit(10)->get()
                 ->map(fn ($incident) => $this->incidentRow($incident))->all(),
@@ -143,8 +145,8 @@ class PublicStatusService
                 ->map(fn ($maintenance) => [
                     'title' => $maintenance->title,
                     'description' => $maintenance->description,
-                    'starts' => $maintenance->starts_at->format('M j, H:i'),
-                    'ends' => $maintenance->ends_at->format('M j, H:i'),
+                    'starts' => setting_time($maintenance->starts_at),
+                    'ends' => setting_time($maintenance->ends_at),
                     'status' => $maintenance->status->value,
                 ])->all(),
             'uptime' => $uptime,
@@ -179,15 +181,15 @@ class PublicStatusService
             'status' => $incident->status->value,
             'impact' => $incident->impact->value,
             'service_name' => $incident->service?->name,
-            'started' => $incident->started_at->format('M j, Y H:i'),
+            'started' => setting_time($incident->started_at, 'M j, Y H:i'),
             'started_human' => $incident->started_at->diffForHumans(),
-            'resolved' => $incident->resolved_at?->format('M j, Y H:i'),
+            'resolved' => $incident->resolved_at ? setting_time($incident->resolved_at, 'M j, Y H:i') : null,
             'updates' => $incident->relationLoaded('updates')
                 ? $incident->updates->map(fn ($update) => [
                     'status' => $update->status->value,
                     'status_label' => $update->status->label(),
                     'message' => $update->message,
-                    'at' => $update->created_at->format('M j, Y H:i'),
+                    'at' => setting_time($update->created_at, 'M j, Y H:i'),
                 ])->all()
                 : [],
         ];

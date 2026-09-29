@@ -44,7 +44,27 @@ class SettingsController extends Controller
         return view('admin.status.settings.index', [
             'grouped' => $grouped,
             'mailConfigured' => StatusMailConfig::isConfigured(),
+            'timezones' => self::groupedTimezones(),
         ]);
+    }
+
+    /**
+     * PHP identifiers grouped by region for the timezone dropdown.
+     *
+     * @return array<string, list<string>>
+     */
+    public static function groupedTimezones(): array
+    {
+        $grouped = [];
+
+        foreach (timezone_identifiers_list() as $zone) {
+            $parts = explode('/', $zone, 2);
+            $grouped[count($parts) === 2 ? $parts[0] : 'Other'][] = $zone;
+        }
+
+        ksort($grouped);
+
+        return $grouped;
     }
 
     public function update(Request $request): RedirectResponse
@@ -70,6 +90,7 @@ class SettingsController extends Controller
         $rules['settings.mail_port'][] = 'min:1';
         $rules['settings.mail_port'][] = 'max:65535';
         $rules['settings.theme_default'][] = 'in:light,dark';
+        $rules['settings.timezone'][] = 'timezone';
         $rules['settings.mail_mailer'][] = 'in:smtp,sendmail,log';
         $rules['settings.mail_encryption'][] = 'in:tls,ssl,none';
         $rules['branding.*'] = ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp,ico', 'max:2048'];

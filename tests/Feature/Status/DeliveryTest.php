@@ -128,6 +128,8 @@ class DeliveryTest extends TestCase
                 'lines' => ['line'],
                 'url' => null,
                 'service_id' => $service->id,
+                'service_name' => $service->name,
+                'service_slug' => $service->slug,
                 'sent_at' => $request['sent_at'],
             ]), 's3cret');
 

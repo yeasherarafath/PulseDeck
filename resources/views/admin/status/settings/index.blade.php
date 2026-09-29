@@ -62,6 +62,17 @@
                                             <option value="dark" @selected(old('settings.'.$setting->key, $setting->value) === 'dark')>Dark</option>
                                         </select>
                                         @if ($setting->description)<div class="form-hint">{{ $setting->description }}</div>@endif
+                                    @elseif (in_array($setting->key, ['timezone'], true))
+                                        <select class="form-select" id="set-{{ $setting->key }}" name="settings[{{ $setting->key }}]">
+                                            @foreach ($timezones as $region => $zones)
+                                                <optgroup label="{{ $region }}">
+                                                    @foreach ($zones as $zone)
+                                                        <option value="{{ $zone }}" @selected(old('settings.'.$setting->key, $setting->value) === $zone)>{{ str_replace('_', ' ', $zone === $region ? $zone : substr($zone, strlen($region) + 1)) }}</option>
+                                                    @endforeach
+                                                </optgroup>
+                                            @endforeach
+                                        </select>
+                                        @if ($setting->description)<div class="form-hint">{{ $setting->description }} (PHP timezone; public times render in it.)</div>@endif
                                     @elseif (in_array($setting->key, ['mail_mailer'], true))
                                         <select class="form-select" id="set-{{ $setting->key }}" name="settings[{{ $setting->key }}]">
                                             @foreach (['smtp', 'sendmail', 'log'] as $option)

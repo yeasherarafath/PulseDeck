@@ -7,6 +7,7 @@ use App\Enums\Status\NotificationEvent;
 use App\Mail\StatusAlertMail;
 use App\Models\Status\StatusNotificationChannel;
 use App\Models\Status\StatusNotificationDelivery;
+use App\Models\Status\StatusService;
 use App\Models\Status\StatusSetting;
 use App\Services\Status\StatusMailConfig;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -134,12 +135,16 @@ class SendStatusNotification implements ShouldQueue
             return;
         }
 
+        $service = $this->serviceId !== null ? StatusService::find($this->serviceId) : null;
+
         $payload = [
             'event' => $this->event,
             'subject' => $this->subject,
             'lines' => $this->lines,
             'url' => $this->url,
             'service_id' => $this->serviceId,
+            'service_name' => $service?->name,
+            'service_slug' => $service?->slug,
             'sent_at' => now()->toIso8601String(),
         ];
 

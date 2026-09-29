@@ -21,12 +21,13 @@
                 </div>
                 <h1 class="card-title h2" id="overall-label">{{ $status_label }}</h1>
                 <p class="text-secondary mb-0">Last updated <span id="overall-updated">{{ $updated_human }}</span></p>
+                <p class="text-secondary small mb-0">Server time: <span id="server-time">{{ $server_time }}</span></p>
             </div>
         </div>
 
         {{-- Active incidents --}}
         @if ($incidents !== [])
-            <div class="card mb-3 border-red">
+            <div class="card mb-3 border-red" id="active-incidents">
                 <div class="card-header">
                     <h3 class="card-title">Active incidents</h3>
                 </div>

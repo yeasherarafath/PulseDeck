@@ -13,6 +13,7 @@ use App\Events\Status\ServiceRecovered;
 use App\Events\Status\ServiceWentDown;
 use App\Models\Status\StatusSetting;
 use App\Services\Status\NotificationManager;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -34,6 +35,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // Generated URLs (notifications, signed links, redirects) follow APP_URL.
         URL::forceScheme('https');
+        // One Tabler-styled pagination element across every index page.
+        Paginator::defaultView('vendor.pagination.status');
+        Paginator::defaultSimpleView('vendor.pagination.status');
         $this->applyAdminPrefix();
         $this->registerNotificationListeners();
     }

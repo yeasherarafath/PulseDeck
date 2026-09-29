@@ -37,7 +37,7 @@ enum ServiceStatus: string
 
     public function badgeClass(): string
     {
-        return 'bg-'.$this->color().($this === self::Unknown ? '' : '-lt');
+        return 'bg-'.$this->color().'-lt';
     }
 
     public function isOutage(): bool

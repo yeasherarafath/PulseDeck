@@ -44,6 +44,43 @@ if (! function_exists('admin_base_path')) {
     }
 }
 
+if (! function_exists('setting_timezone')) {
+    /**
+     * Configured display timezone (validated PHP identifier, UTC fallback).
+     * Monitoring internals stay on app time; this is for display only.
+     */
+    function setting_timezone(): string
+    {
+        $tz = (string) setting('timezone', 'UTC');
+
+        try {
+            new DateTimeZone($tz);
+
+            return $tz;
+        } catch (Throwable) {
+            return 'UTC';
+        }
+    }
+}
+
+if (! function_exists('setting_time')) {
+    /**
+     * Format a date/time in the configured display timezone.
+     */
+    function setting_time(DateTimeInterface|string|null $value, string $format = 'M j, H:i'): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $dt = $value instanceof DateTimeInterface
+            ? Carbon\Carbon::parse($value)
+            : Carbon\Carbon::parse((string) $value);
+
+        return $dt->setTimezone(setting_timezone())->format($format);
+    }
+}
+
 if (! function_exists('branding_asset')) {
     /**
      * Public URL for an uploaded branding file (logo/favicon), or null.

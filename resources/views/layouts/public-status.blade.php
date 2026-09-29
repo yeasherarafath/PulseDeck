@@ -52,9 +52,9 @@
                     <div class="row text-center align-items-center flex-row-reverse">
                         <div class="col-lg-auto ms-lg-auto">
                             <ul class="list-inline list-inline-dots mb-0">
-                                <li class="list-inline-item">System Status</li>
-                                <li class="list-inline-item">Incident History</li>
-                                <li class="list-inline-item">API</li>
+                                <li class="list-inline-item"><a href="{{ route('home') }}" class="link-secondary">System Status</a></li>
+                                <li class="list-inline-item"><a href="{{ route('status.index') }}#active-incidents" class="link-secondary">Incident History</a></li>
+                                <li class="list-inline-item"><a href="{{ route('api.status.index') }}" class="link-secondary">API</a></li>
                             </ul>
                         </div>
                         <div class="col-12 col-lg-auto mt-3 mt-lg-0">
