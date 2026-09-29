@@ -103,7 +103,7 @@
         @endforelse
 
         {{-- 90-day history --}}
-        <div class="card">
+        <div class="card mb-3">
             <div class="card-header">
                 <h3 class="card-title">Past {{ $window_days }} days</h3>
             </div>
@@ -121,6 +121,24 @@
                         </div>
                     @endforeach
                 @endforeach
+            </div>
+        </div>
+
+        {{-- Subscribe --}}
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title">Get incident updates by email</h3>
+                @if (session('status'))
+                    <div class="alert alert-success" role="alert">{{ session('status') }}</div>
+                @endif
+                <form method="POST" action="{{ route('status.subscribe') }}">
+                    @csrf
+                    <div class="input-group">
+                        <input type="email" class="form-control @error('email') is-invalid @enderror" name="email" placeholder="you@example.com" required />
+                        <button type="submit" class="btn btn-primary">Subscribe</button>
+                    </div>
+                    @error('email')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                </form>
             </div>
         </div>
     </div>

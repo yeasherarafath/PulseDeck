@@ -6,6 +6,7 @@ use App\Enums\Status\SettingGroup;
 use App\Enums\Status\SettingType;
 use App\Models\Status\StatusSetting;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Cache;
 
 class StatusSettingSeeder extends Seeder
 {
@@ -87,6 +88,8 @@ class StatusSettingSeeder extends Seeder
                     'description' => $default['description'],
                 ],
             );
+
+            Cache::forget('status-setting-v1:'.$default['key']);
         }
     }
 }

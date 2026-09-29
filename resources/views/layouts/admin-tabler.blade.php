@@ -45,14 +45,53 @@
                                 <span class="nav-link-title">Dashboard</span>
                             </a>
                         </li>
-                        @foreach (['Services', 'Incidents', 'Maintenances', 'Monitoring', 'Settings'] as $item)
+                        @can('status.services.view')
                             <li class="nav-item">
-                                <span class="nav-link disabled">
-                                    <span class="nav-link-title">{{ $item }}</span>
-                                    <span class="badge bg-blue-lt ms-auto">soon</span>
-                                </span>
+                                <a class="nav-link" href="{{ route('admin.status.services.index') }}">
+                                    <span class="nav-link-title">Services</span>
+                                </a>
                             </li>
-                        @endforeach
+                        @endcan
+                        @can('status.incidents.view')
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('admin.status.incidents.index') }}">
+                                    <span class="nav-link-title">Incidents</span>
+                                </a>
+                            </li>
+                        @endcan
+                        @can('status.maintenance.view')
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('admin.status.maintenances.index') }}">
+                                    <span class="nav-link-title">Maintenance</span>
+                                </a>
+                            </li>
+                        @endcan
+                        @can('status.monitoring.view')
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('admin.status.monitoring') }}">
+                                    <span class="nav-link-title">Monitoring</span>
+                                </a>
+                            </li>
+                        @endcan
+                        @can('status.notifications.manage')
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('admin.status.notifications.channels') }}">
+                                    <span class="nav-link-title">Notifications</span>
+                                </a>
+                            </li>
+                        @endcan
+                        @can('status.settings.manage')
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('admin.status.settings') }}">
+                                    <span class="nav-link-title">Settings</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('admin.status.audit-logs') }}">
+                                    <span class="nav-link-title">Audit log</span>
+                                </a>
+                            </li>
+                        @endcan
                     </ul>
                 </div>
             </div>

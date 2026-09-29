@@ -2,7 +2,18 @@
 
 namespace App\Providers;
 
+use App\Enums\Status\NotificationEvent;
+use App\Events\Status\IncidentCreated;
+use App\Events\Status\IncidentResolved;
+use App\Events\Status\IncidentUpdated;
+use App\Events\Status\MaintenanceEnded;
+use App\Events\Status\MaintenanceStarted;
+use App\Events\Status\ServiceBecameDegraded;
+use App\Events\Status\ServiceRecovered;
+use App\Events\Status\ServiceWentDown;
 use App\Models\Status\StatusSetting;
+use App\Services\Status\NotificationManager;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -21,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->applyAdminPrefix();
+        $this->registerNotificationListeners();
     }
 
     /**
@@ -38,5 +50,101 @@ class AppServiceProvider extends ServiceProvider
 
         config(['status.admin_prefix' => $prefix]);
         config(['fortify.home' => '/'.$prefix.'/status']);
+    }
+
+    /**
+     * Monitoring events fan out through the NotificationManager, which
+     * honors the settings kill-switches and per-channel rules.
+     */
+    private function registerNotificationListeners(): void
+    {
+        Event::listen(ServiceWentDown::class, function (ServiceWentDown $event): void {
+            app(NotificationManager::class)->notify(
+                NotificationEvent::ServiceFailed,
+                $event->service,
+                "{$event->service->name} is down",
+                array_filter([
+                    $event->outcome?->errorMessage,
+                    $event->outcome?->httpStatus ? "HTTP {$event->outcome->httpStatus}" : null,
+                    'Checked '.$event->service->last_checked_at?->diffForHumans(),
+                ]),
+                url('/status'),
+            );
+        });
+
+        Event::listen(ServiceRecovered::class, function (ServiceRecovered $event): void {
+            app(NotificationManager::class)->notify(
+                NotificationEvent::ServiceRecovered,
+                $event->service,
+                "{$event->service->name} recovered",
+                ['The service is responding normally again.'],
+                url('/status'),
+            );
+        });
+
+        Event::listen(ServiceBecameDegraded::class, function (ServiceBecameDegraded $event): void {
+            app(NotificationManager::class)->notify(
+                NotificationEvent::ServiceFailed,
+                $event->service,
+                "{$event->service->name} is degraded",
+                array_filter([
+                    'Responses are slower than the warning threshold.',
+                    $event->outcome?->responseTimeMs !== null ? "Last response: {$event->outcome->responseTimeMs} ms" : null,
+                ]),
+                url('/status'),
+            );
+        });
+
+        $incidentUrl = fn ($incident) => url('/status/incidents/'.$incident->slug);
+
+        Event::listen(IncidentCreated::class, function (IncidentCreated $event) use ($incidentUrl): void {
+            app(NotificationManager::class)->notify(
+                NotificationEvent::IncidentCreated,
+                $event->incident->service,
+                "Incident opened: {$event->incident->title}",
+                ["Impact: {$event->incident->impact->label()}"],
+                $incidentUrl($event->incident),
+            );
+        });
+
+        Event::listen(IncidentUpdated::class, function (IncidentUpdated $event) use ($incidentUrl): void {
+            app(NotificationManager::class)->notify(
+                NotificationEvent::IncidentUpdated,
+                $event->incident->service,
+                "Incident update: {$event->incident->title}",
+                ["Status: {$event->incident->status->label()}"],
+                $incidentUrl($event->incident),
+            );
+        });
+
+        Event::listen(IncidentResolved::class, function (IncidentResolved $event) use ($incidentUrl): void {
+            app(NotificationManager::class)->notify(
+                NotificationEvent::IncidentResolved,
+                $event->incident->service,
+                "Incident resolved: {$event->incident->title}",
+                ['The service is operating normally.'],
+                $incidentUrl($event->incident),
+            );
+        });
+
+        Event::listen(MaintenanceStarted::class, function (MaintenanceStarted $event): void {
+            app(NotificationManager::class)->notify(
+                NotificationEvent::MaintenanceStarted,
+                null,
+                "Maintenance started: {$event->maintenance->title}",
+                ["Until {$event->maintenance->ends_at->format('M j, H:i')}."],
+                url('/status'),
+            );
+        });
+
+        Event::listen(MaintenanceEnded::class, function (MaintenanceEnded $event): void {
+            app(NotificationManager::class)->notify(
+                NotificationEvent::MaintenanceEnded,
+                null,
+                "Maintenance ended: {$event->maintenance->title}",
+                [],
+                url('/status'),
+            );
+        });
     }
 }
