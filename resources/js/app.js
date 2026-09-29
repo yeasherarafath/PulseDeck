@@ -1,9 +1,12 @@
 import '@tabler/core/dist/js/tabler.min.js';
-import * as bootstrap from 'bootstrap';
 import TomSelect from 'tom-select';
 import { getTheme, setTheme } from './theme.js';
 
-window.bootstrap = bootstrap;
+// NOTE: Tabler bundles its own Bootstrap build which owns all
+// data-bs-* behavior. Do NOT import a second Bootstrap copy — duplicate
+// Data-API handlers double-toggle dropdowns/modals (open+close = dead UI).
+// Programmatic modal use goes through a hidden data-bs-toggle trigger
+// (see service-form.js showTestModal), never window.bootstrap.
 window.TomSelect = TomSelect;
 
 document.addEventListener('DOMContentLoaded', () => {

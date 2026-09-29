@@ -445,27 +445,42 @@ function showTestModal() {
         return;
     }
 
-    if (window.bootstrap?.Modal) {
-        window.bootstrap.Modal.getOrCreateInstance(modal).show();
+    // Open through Tabler's bundled Bootstrap (single Data-API owner).
+    let trigger = document.getElementById('test-modal-trigger');
 
-        return;
+    if (!trigger) {
+        trigger = document.createElement('button');
+        trigger.id = 'test-modal-trigger';
+        trigger.type = 'button';
+        trigger.className = 'd-none';
+        trigger.setAttribute('data-bs-toggle', 'modal');
+        trigger.setAttribute('data-bs-target', '#test-modal');
+        document.body.appendChild(trigger);
     }
 
-    // Fallback when Bootstrap JS is unavailable: reveal the modal plainly.
-    modal.classList.add('show');
-    modal.style.display = 'block';
-    modal.removeAttribute('aria-hidden');
+    trigger.click();
 
-    if (!document.querySelector('.modal-backdrop.fallback')) {
-        const backdrop = document.createElement('div');
-        backdrop.className = 'modal-backdrop fade show fallback';
-        backdrop.addEventListener('click', hideTestModalFallback);
-        document.body.appendChild(backdrop);
-    }
+    // Fallback: if no handler opened it, reveal plainly.
+    window.setTimeout(() => {
+        if (modal.classList.contains('show')) {
+            return;
+        }
 
-    modal.querySelectorAll('[data-bs-dismiss="modal"]').forEach((button) => {
-        button.addEventListener('click', hideTestModalFallback, { once: true });
-    });
+        modal.classList.add('show');
+        modal.style.display = 'block';
+        modal.removeAttribute('aria-hidden');
+
+        if (!document.querySelector('.modal-backdrop.fallback')) {
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show fallback';
+            backdrop.addEventListener('click', hideTestModalFallback);
+            document.body.appendChild(backdrop);
+        }
+
+        modal.querySelectorAll('[data-bs-dismiss="modal"]').forEach((button) => {
+            button.addEventListener('click', hideTestModalFallback, { once: true });
+        });
+    }, 150);
 }
 
 function hideTestModalFallback() {
