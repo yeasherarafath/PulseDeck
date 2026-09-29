@@ -41,20 +41,24 @@ class StatusSetting extends Model
 
     public static function get(string $key, mixed $default = null): mixed
     {
-        $row = Cache::remember('status-setting:'.$key, 60, fn () => static::where('key', $key)->first());
+        // Cache the computed plain value (never the model): cached models
+        // can unserialize as __PHP_Incomplete_Class across processes.
+        return Cache::remember('status-setting-v1:'.$key, 60, function () use ($key, $default): mixed {
+            $row = static::where('key', $key)->first();
 
-        if (! $row) {
-            return $default;
-        }
+            if (! $row) {
+                return $default;
+            }
 
-        $raw = $row->is_encrypted && $row->value !== null ? decrypt($row->value) : $row->value;
+            $raw = $row->is_encrypted && $row->value !== null ? decrypt($row->value) : $row->value;
 
-        return match ($row->type) {
-            SettingType::Integer => $raw === null ? $default : (int) $raw,
-            SettingType::Boolean => $raw === null ? $default : filter_var($raw, FILTER_VALIDATE_BOOLEAN),
-            SettingType::Json => $raw === null || $raw === '' ? $default : json_decode($raw, true),
-            default => $raw ?? $default,
-        };
+            return match ($row->type) {
+                SettingType::Integer => $raw === null ? $default : (int) $raw,
+                SettingType::Boolean => $raw === null ? $default : filter_var($raw, FILTER_VALIDATE_BOOLEAN),
+                SettingType::Json => $raw === null || $raw === '' ? $default : json_decode($raw, true),
+                default => $raw ?? $default,
+            };
+        });
     }
 
     public static function set(string $key, mixed $value, ?int $updatedBy = null): void
@@ -72,6 +76,6 @@ class StatusSetting extends Model
             'updated_by' => $updatedBy,
         ])->save();
 
-        Cache::forget('status-setting:'.$key);
+        Cache::forget('status-setting-v1:'.$key);
     }
 }

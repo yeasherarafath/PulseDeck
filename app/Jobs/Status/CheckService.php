@@ -16,6 +16,7 @@ use App\Services\Status\CheckOutcome;
 use App\Services\Status\HttpChecker;
 use App\Services\Status\IncidentManager;
 use App\Services\Status\MaintenanceManager;
+use App\Services\Status\PublicStatusService;
 use App\Services\Status\RequestBuilder;
 use App\Services\Status\StatusCalculator;
 use App\Services\Status\StatusRequestDefinition;
@@ -138,7 +139,8 @@ class CheckService implements ShouldQueue
         ServiceCheckCompleted::dispatch($service->fresh(), $outcome, $assertionResult, $result);
 
         if ($result->toServiceStatus() !== $previous) {
-            Cache::forget('status:public');
+            Cache::forget(PublicStatusService::CACHE_KEY);
+            Cache::forget(PublicStatusService::serviceKey($service->id));
         }
 
         Cache::put('status:monitor:heartbeat', now()->timestamp, 600);

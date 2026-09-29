@@ -3,15 +3,19 @@
 use App\Http\Controllers\Admin\Status\DashboardController;
 use App\Http\Controllers\Admin\Status\MonitoringController;
 use App\Http\Controllers\Admin\Status\ServiceController;
+use App\Http\Controllers\Status\StatusPageController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/status');
 
 Route::prefix('status')->name('status.')->group(function () {
-    Route::get('/', fn () => view('status.index'))->name('index');
+    Route::get('/', [StatusPageController::class, 'index'])->name('index');
+    Route::get('refresh', [StatusPageController::class, 'refresh'])->name('refresh')->middleware('throttle:60,1');
+    Route::get('services/{service:slug}', [StatusPageController::class, 'showService'])->name('services.show');
+    Route::get('incidents/{incident:slug}', [StatusPageController::class, 'showIncident'])->name('incidents.show');
 });
 
-Route::prefix('admin/status')->name('admin.status.')->middleware(['auth', 'permission:status.view'])->group(function () {
+Route::prefix(trim((string) config('status.admin_prefix', 'admin'), '/').'/status')->name('admin.status.')->middleware(['auth', 'permission:status.view'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('monitoring', MonitoringController::class)->name('monitoring')->middleware('permission:status.monitoring.view');

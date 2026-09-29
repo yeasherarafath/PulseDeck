@@ -27,4 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.querySelector('[data-service-form]')) {
         import('./service-form.js');
     }
+
+    // Public status polling + charts (code-split).
+    if (document.querySelector('[data-status-poll]') || document.getElementById('response-chart')) {
+        import('./status-page.js');
+    }
 });

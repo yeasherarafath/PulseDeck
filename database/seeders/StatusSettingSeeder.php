@@ -22,6 +22,7 @@ class StatusSettingSeeder extends Seeder
         ['key' => 'timezone', 'value' => 'UTC', 'type' => SettingType::String, 'group' => SettingGroup::General, 'encrypted' => false, 'description' => 'Display timezone for dates.'],
         ['key' => 'theme_default', 'value' => 'light', 'type' => SettingType::String, 'group' => SettingGroup::General, 'encrypted' => false, 'description' => 'Default theme for admin and public pages.'],
         ['key' => 'theme_allow_user_toggle', 'value' => '1', 'type' => SettingType::Boolean, 'group' => SettingGroup::General, 'encrypted' => false, 'description' => 'Allow visitors to switch dark/light mode.'],
+        ['key' => 'admin_prefix', 'value' => 'admin', 'type' => SettingType::String, 'group' => SettingGroup::General, 'encrypted' => false, 'description' => 'Admin URL prefix (e.g. admin → /admin/status). Changing it moves the whole admin panel; clear route cache afterwards.'],
         // Branding
         ['key' => 'logo_path', 'value' => null, 'type' => SettingType::String, 'group' => SettingGroup::Branding, 'encrypted' => false, 'description' => 'Light-mode logo path.'],
         ['key' => 'logo_dark_path', 'value' => null, 'type' => SettingType::String, 'group' => SettingGroup::Branding, 'encrypted' => false, 'description' => 'Dark-mode logo path.'],
