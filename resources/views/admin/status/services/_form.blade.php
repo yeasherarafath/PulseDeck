@@ -83,7 +83,7 @@
                             <label class="form-label required" for="f-interval">Check interval</label>
                             <select class="form-select" id="f-interval" name="check_interval">
                                 @foreach (CheckInterval::cases() as $interval)
-                                    <option value="{{ $interval->value }}" @selected((int) old('check_interval', $service?->check_interval ?? 300) === $interval->value)>{{ $interval->label() }}</option>
+                                    <option value="{{ $interval->value }}" @selected((int) old('check_interval', $service?->check_interval ?? setting('default_check_interval', 300)) === $interval->value)>{{ $interval->label() }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -331,11 +331,11 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label required" for="f-timeout">Request timeout (seconds)</label>
-                            <input type="number" class="form-control" id="f-timeout" name="timeout" value="{{ old('timeout', $service?->timeout ?? 15) }}" min="1" max="60" required />
+                            <input type="number" class="form-control" id="f-timeout" name="timeout" value="{{ old('timeout', $service?->timeout ?? setting('default_timeout', 15)) }}" min="1" max="60" required />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label required" for="f-ctimeout">Connection timeout (seconds)</label>
-                            <input type="number" class="form-control" id="f-ctimeout" name="connect_timeout" value="{{ old('connect_timeout', $service?->connect_timeout ?? 5) }}" min="1" max="60" required />
+                            <input type="number" class="form-control" id="f-ctimeout" name="connect_timeout" value="{{ old('connect_timeout', $service?->connect_timeout ?? setting('default_connect_timeout', 5)) }}" min="1" max="60" required />
                         </div>
                         <div class="col-md-6">
                             <label class="form-check form-switch">
@@ -352,6 +352,18 @@
                             <input type="number" class="form-control" id="f-mindown" name="min_failed_checks_down" value="{{ old('min_failed_checks_down', $service?->min_failed_checks_down) }}" min="1" max="100" placeholder="Global default ({{ $globalMinDown ?? 1 }})" />
                             <div class="form-hint">Consecutive failed checks before this service shows as down. Blank uses the global default.</div>
                             @error('min_failed_checks_down')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="f-failth">Failures to open incident</label>
+                            <input type="number" class="form-control" id="f-failth" name="failure_threshold" value="{{ old('failure_threshold', $service?->failure_threshold ?? setting('failure_threshold', 3)) }}" min="1" max="100" required />
+                            <div class="form-hint">Consecutive failures before an incident auto-opens.</div>
+                            @error('failure_threshold')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="f-recth">Recoveries to resolve incident</label>
+                            <input type="number" class="form-control" id="f-recth" name="recovery_threshold" value="{{ old('recovery_threshold', $service?->recovery_threshold ?? setting('recovery_threshold', 2)) }}" min="1" max="100" required />
+                            <div class="form-hint">Consecutive successes before an incident auto-resolves.</div>
+                            @error('recovery_threshold')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-check form-switch">

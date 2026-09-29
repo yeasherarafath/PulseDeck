@@ -7,6 +7,7 @@ use App\Enums\Status\HttpMethod;
 use App\Enums\Status\HttpVersion;
 use App\Enums\Status\RequestBodyType;
 use App\Models\Status\StatusService;
+use App\Models\Status\StatusSetting;
 use InvalidArgumentException;
 
 /**
@@ -125,9 +126,9 @@ class RequestBuilder
             'description' => $input['description'] ?? null,
             'url' => $input['url'],
             'method' => strtoupper((string) ($input['method'] ?? 'GET')),
-            'check_interval' => (int) ($input['check_interval'] ?? 300),
-            'timeout' => (int) ($input['timeout'] ?? 15),
-            'connect_timeout' => (int) ($input['connect_timeout'] ?? 5),
+            'check_interval' => (int) ($input['check_interval'] ?? StatusSetting::get('default_check_interval', 300)),
+            'timeout' => (int) ($input['timeout'] ?? StatusSetting::get('default_timeout', 15)),
+            'connect_timeout' => (int) ($input['connect_timeout'] ?? StatusSetting::get('default_connect_timeout', 5)),
             'follow_redirects' => (bool) ($input['follow_redirects'] ?? false),
             'max_redirects' => (int) ($input['max_redirects'] ?? 5),
             'verify_ssl' => (bool) ($input['verify_ssl'] ?? false),
@@ -150,6 +151,8 @@ class RequestBuilder
             'notify_on_failure' => (bool) ($input['notify_on_failure'] ?? false),
             'notify_on_recovery' => (bool) ($input['notify_on_recovery'] ?? false),
             'min_failed_checks_down' => $this->nullableInt($input['min_failed_checks_down'] ?? null),
+            'failure_threshold' => max(1, (int) ($input['failure_threshold'] ?? StatusSetting::get('failure_threshold', 3))),
+            'recovery_threshold' => max(1, (int) ($input['recovery_threshold'] ?? StatusSetting::get('recovery_threshold', 2))),
         ];
     }
 

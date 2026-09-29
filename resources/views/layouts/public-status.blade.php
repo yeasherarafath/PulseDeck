@@ -59,7 +59,7 @@
                         </div>
                         <div class="col-12 col-lg-auto mt-3 mt-lg-0">
                             <ul class="list-inline list-inline-dots mb-0">
-                                <li class="list-inline-item">{{ config('app.name', 'Status') }} &middot; {{ date('Y') }}</li>
+                                <li class="list-inline-item">{{ setting('footer_text') ?: config('app.name', 'Status').' · '.date('Y') }}</li>
                             </ul>
                         </div>
                     </div>

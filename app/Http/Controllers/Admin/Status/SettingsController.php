@@ -8,12 +8,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Status\StatusAuditLog;
 use App\Models\Status\StatusSetting;
 use App\Services\Status\StatusMailConfig;
+use DOMDocument;
+use DOMXPath;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class SettingsController extends Controller
@@ -91,6 +95,9 @@ class SettingsController extends Controller
         $rules['settings.mail_port'][] = 'max:65535';
         $rules['settings.theme_default'][] = 'in:light,dark';
         $rules['settings.timezone'][] = 'timezone';
+        $rules['settings.raw_checks_retention_days'][] = 'min:1';
+        $rules['settings.daily_stats_retention_days'][] = 'min:1';
+        $rules['settings.audit_retention_days'][] = 'min:1';
         $rules['settings.mail_mailer'][] = 'in:smtp,sendmail,log';
         $rules['settings.mail_encryption'][] = 'in:tls,ssl,none';
         $rules['branding.*'] = ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp,ico', 'max:2048'];
@@ -174,13 +181,70 @@ class SettingsController extends Controller
 
             $this->deleteBrandingFile($row->value);
 
-            $path = $file->store('branding', 'public');
+            // SVGs are served raw: sanitize scripts/event handlers from the
+            // upload before storing so a logo can never become stored XSS.
+            if (strtolower($file->getClientOriginalExtension()) === 'svg') {
+                $sanitized = self::sanitizeSvg((string) file_get_contents($file->getRealPath()));
+
+                if ($sanitized === null) {
+                    throw ValidationException::withMessages([
+                        "branding.{$key}" => 'The SVG could not be read safely and was rejected.',
+                    ]);
+                }
+
+                $path = 'branding/'.Str::random(40).'.svg';
+
+                Storage::disk('public')->put($path, $sanitized);
+            } else {
+                $path = $file->store('branding', 'public');
+            }
 
             StatusSetting::set($key, $path, $request->user()->id);
             $changed[] = $key;
         }
 
         return $changed;
+    }
+
+    /**
+     * Strip <script> elements, on* handlers, and javascript: links from SVG
+     * markup. Returns the clean XML, or null when it is not parseable.
+     */
+    public static function sanitizeSvg(string $xml): ?string
+    {
+        if (trim($xml) === '') {
+            return null;
+        }
+
+        $previous = libxml_use_internal_errors(true);
+
+        try {
+            $dom = new DOMDocument;
+
+            if (! $dom->loadXML($xml, LIBXML_NONET | LIBXML_NOENT)) {
+                return null;
+            }
+
+            foreach (iterator_to_array($dom->getElementsByTagName('script')) as $script) {
+                $script->parentNode?->removeChild($script);
+            }
+
+            $xpath = new DOMXPath($dom);
+
+            foreach ($xpath->query('//@*[starts-with(local-name(), "on")]') ?: [] as $attribute) {
+                $attribute->ownerElement?->removeAttribute($attribute->nodeName);
+            }
+
+            foreach ($xpath->query('//@href | //@xlink:href') ?: [] as $attribute) {
+                if (str_starts_with(strtolower(trim((string) $attribute->nodeValue)), 'javascript:')) {
+                    $attribute->ownerElement?->removeAttribute($attribute->nodeName);
+                }
+            }
+
+            return $dom->saveXML() ?: null;
+        } finally {
+            libxml_use_internal_errors($previous);
+        }
     }
 
     private function deleteBrandingFile(?string $path): void

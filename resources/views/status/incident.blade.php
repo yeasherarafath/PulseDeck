@@ -13,9 +13,9 @@
                 <x-status-badge :status="$incident->impact" />
             </div>
             <div class="mt-2 text-secondary">
-                Started {{ $incident->started_at->format('M j, Y H:i') }}
+                Started {{ setting_time($incident->started_at, 'M j, Y H:i') }}
                 @if ($incident->resolved_at)
-                    &middot; Resolved {{ $incident->resolved_at->format('M j, Y H:i') }}
+                    &middot; Resolved {{ setting_time($incident->resolved_at, 'M j, Y H:i') }}
                 @endif
             </div>
         </div>
@@ -31,7 +31,7 @@
                     <li class="step-item">
                         <div class="h4 m-0">{{ $update->status->label() }}</div>
                         <div class="text-secondary">
-                            {{ $update->created_at->format('M j, Y H:i') }} — {{ $update->message }}
+                            {{ setting_time($update->created_at, 'M j, Y H:i') }} — {{ $update->message }}
                         </div>
                     </li>
                 @empty
