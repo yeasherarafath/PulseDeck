@@ -9,6 +9,7 @@ class StatusSubscriber extends Model
     protected $fillable = [
         'email',
         'verification_token',
+        'unsubscribe_token',
         'verified_at',
         'is_active',
     ];

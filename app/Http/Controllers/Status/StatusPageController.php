@@ -95,7 +95,7 @@ class StatusPageController extends Controller
 
         $subscriber = StatusSubscriber::firstOrCreate(
             ['email' => strtolower(trim($validated['email']))],
-            ['verification_token' => Str::random(48), 'is_active' => true],
+            ['verification_token' => Str::random(48), 'unsubscribe_token' => Str::random(48), 'is_active' => true],
         );
 
         if ($subscriber->wasRecentlyCreated && StatusMailConfig::isConfigured()) {
@@ -131,7 +131,8 @@ class StatusPageController extends Controller
 
     public function unsubscribe(string $token): RedirectResponse
     {
-        StatusSubscriber::where('verification_token', $token)->delete();
+        // Persistent token: works long after the one-time verify link is consumed.
+        StatusSubscriber::where('unsubscribe_token', $token)->delete();
 
         return redirect()->route('status.index')
             ->with('status', 'You have been unsubscribed.');
