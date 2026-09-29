@@ -1,79 +1,87 @@
-# Status Page — Service Monitoring & Public Status
+# PulseDeck — Service Monitoring & Public Status Page
 
-> A self-hosted status monitoring system (think GitHub Status / Atlassian Statuspage, but yours).
-> It watches your websites and APIs around the clock, and shows a clean public page saying
-> **“All Systems Operational”** — or exactly what’s broken, with history to prove it.
+> Your own GitHub-Status / Atlassian-Statuspage, self-hosted. It watches your websites
+> and APIs around the clock and shows a clean public page: **“All Systems Operational”** —
+> or exactly what’s broken, with history to prove it.
+>
+> Full capability list: [`features.md`](features.md).
 
 ---
 
-## For everyone (non-technical)
+## Who is this guide for?
 
-**What does it do?**
+- **Non-technical reader** (founder, support lead, client): start at
+  [What it does](#what-it-does-plain-language) and [Everyday use](#everyday-use-no-code-needed).
+  Setup itself needs a developer once (~30 minutes); afterwards everything is point-and-click.
+- **Technical reader** (developer, DevOps): jump to [Requirements](#requirements),
+  [Setup](#setup-step-by-step), [Admin users](#admin-users--roles) and
+  [Going live](#going-live-production-checklist).
 
-- **Public status page** — one link you share with customers: green when everything works,
-  clear banners when there’s an incident or planned maintenance, plus 90-day uptime history.
+---
+
+## What it does (plain language)
+
+- **A public status page** — one link you share with customers. Green when everything works,
+  clear banners during incidents or planned maintenance, plus 90-day uptime history per service.
 - **Automatic checking** — every few minutes the system visits your websites/APIs and verifies
-  they respond correctly and fast.
-- **Incidents** — when something fails repeatedly, an incident is opened automatically;
-  your team posts updates (“investigating → identified → monitoring → resolved”) and the
-  public page shows the timeline.
-- **Maintenance windows** — schedule “Database upgrade Sunday 2–3 AM” once; affected services
-  show “Scheduled Maintenance” instead of false alarms, and uptime stats stay fair.
-- **Alerts** — get notified by email or webhook when services go down or recover
-  (each event can be switched on/off in Settings).
-- **Dark & light mode** — both the admin panel and the public page support dark and light
-  themes (default: light), with a one-click toggle.
+  they respond correctly and fast. One failed check never causes panic: a service is only
+  marked “down” after several consecutive failures, and it flips back to green by itself
+  the moment it recovers.
+- **Incidents** — repeated failures open an incident automatically; your team posts updates
+  (“investigating → identified → monitoring → resolved”) and visitors see a live timeline.
+- **Maintenance windows** — schedule “Database upgrade Sunday 2–3 AM” once; affected
+  services show “Scheduled Maintenance” instead of false alarms.
+- **Alerts** — email and webhook notifications when services fail, degrade, or recover,
+  plus incident emails to subscribed visitors (double opt-in, one-click unsubscribe).
+- **Dark & light mode**, your logo and favicon, on both the admin panel and public page.
 
-**How it works, in one paragraph:** you add a service (e.g. “Main API”) with its URL and what
-a “healthy” response looks like. A background worker checks it on schedule, records every
-result, and updates the service state (Operational → Degraded → Partial/Major Outage).
-The public page, uptime percentages, charts, and alerts all flow from those check results —
-cached for speed, so visitors never slow down monitoring.
-
----
-
-## Features (V1 + V2 scope)
-
-| Area | What’s included |
-|---|---|
-| Public page | Overall banner, grouped services, active incidents, maintenance notices, 90-day uptime bars, service detail pages with response-time charts, incident timelines, status badge (`/status/badge.svg`), public API |
-| Admin panel (Tabler) | Dashboard, service CRUD with tabbed request builder (General / Request / Auth / Assertions / Advanced), header suggestions + custom headers + templates, auth (None/Bearer/Basic/API-Key/Custom), request bodies (JSON/Form/Raw), Test Request modal, Check Now, check history, monitoring overview, maintenance scheduler, notification rules, settings |
-| Monitoring engine | Scheduler → queue jobs → HTTP checker → assertion engine (status codes, response-time thresholds, body/JSON/header assertions) → status calculator → incident detection (N consecutive failures open, M recoveries close) |
-| Safety | SSRF protection (incl. redirects), scheme allowlist, response-size caps, timeouts, encrypted secrets, redacted logs/audit, rate-limited test/check/API endpoints |
-| Settings (`status_settings`) | App name/tagline/URL, branding (logo incl. dark variant, favicon, footer), timezone, monitoring defaults, public-page/API/subscription/badge toggles, full SMTP credentials + test email, email/webhook master switches + per-event flags, retention periods, theme default |
-
-Full specification: [`final-plan.md`](final-plan.md) · Original brainstorm: [`plan.md`](plan.md)
+**In one paragraph:** you add a service (“Main API”) with its URL and what “healthy” looks
+like. A background worker checks it on schedule, records every result, and updates its
+state (Operational → Degraded → Partial/Major Outage → back to Operational). The public
+page, uptime percentages, charts, and alerts all flow from those results.
 
 ---
 
-## For developers (technical)
+## Requirements
 
-**Stack:** Laravel 13 · PHP 8.4 · MariaDB/MySQL · Database queue · Tabler v1 (npm + Vite) +
-Tom Select + Monaco + ApexCharts · Spatie Permission · Laravel Boost (dev) · Pest/PHPUnit · Pint
+| Need | Minimum | Notes |
+|---|---|---|
+| PHP | 8.3+ | 8.4 recommended |
+| Composer | 2.x | PHP dependency manager |
+| Node.js | 20+ | Only needed to build frontend assets |
+| Database | MySQL 8 / MariaDB 10+ **or** SQLite | MySQL recommended for production |
+| Web server | Laragon / Nginx / Apache | Laragon is the easiest path on Windows |
 
-**Architecture:** slim controllers (Validate → Authorize → Service → View/Resource),
-`StatusRequestDefinition` DTO shared by scheduled checks and Test Request,
-`app/Services/Status/*` (RequestBuilder, HttpChecker, AssertionEngine, StatusCalculator,
-IncidentManager, SsrfGuard, …), `app/Jobs/Status/CheckService` on the `database` queue,
-events (`ServiceCheckCompleted`, `IncidentCreated/Resolved`, …) decoupling notifications.
-Typed PHP enums for all statuses (`ServiceStatus`, `IncidentStatus`, `MaintenanceStatus`, …).
-Public status cached 15–30s and invalidated on state change.
+---
 
-**Routes:**
+## Setup, step by step
 
-```text
-/status · /status/{service} · /status/incidents/{incident}
-/admin/status/{dashboard,services,incidents,maintenances,monitoring,settings}
-/api/status · /api/status/services · /api/status/services/{service} · /api/status/incidents
+### 1. Get the code
+
+```bash
+git clone <your-repo-url> status-page
+cd status-page
+composer install
+npm install
 ```
 
----
+Or all-in-one (installs, generates key, migrates, builds assets):
 
-## Quick start (Laragon, Windows)
+```bash
+composer run setup
+```
 
-Database `status-page` already exists (user `root`, empty password). `.env` is pre-wired:
+### 2. Configure the environment
+
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+Then edit `.env`. **Option A — MySQL/MariaDB** (recommended, and pre-wired for Laragon):
 
 ```env
+APP_URL=https://status.yourcompany.com
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
@@ -82,46 +90,187 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-```bash
-# 1. Install dependencies (if fresh clone)
-composer install
-npm install
+Create the empty database first (in Laragon: right-click → Quick create, or HeidiSQL).
+**Option B — SQLite** (simplest for a first try): set `DB_CONNECTION=sqlite` and create
+an empty `database/database.sqlite` file.
 
-# 2. Tables (status-* tables come with Phase 1 migrations)
+> Subdomain hosting: point e.g. `status.yourcompany.com` at the app, set `APP_URL`
+> to match, and the public status page is served directly at `/` — no redirect.
+
+### 3. Create tables + default data
+
+```bash
 php artisan migrate
-
-# 3. Frontend
-npm run dev        # dev, or: npm run build
-
-# 4. Run the app + background checking (two terminals)
-php artisan serve                      # http://localhost:8000
-php artisan queue:work --queue=default # processes CheckService jobs
-# Scheduler (every minute dispatches due checks):
-php artisan schedule:run               # or a cron calling it each minute
+php artisan db:seed
+php artisan storage:link   # required: makes uploaded logos/favicons visible
 ```
 
-**Next build steps** follow [`final-plan.md`](final-plan.md) §8 checklist:
-migrations → models/enums → auth/permissions → groups → service CRUD → request UI →
-RequestBuilder → SsrfGuard → HttpChecker → CheckService → scheduler/queue → public pages →
-incidents/maintenance → notifications/API → settings → tests → perf/security review.
+Seeding installs: roles & permissions, a local admin login (see below), header
+presets/templates for the request builder, and every default in Settings.
 
-## Testing
+### 4. Build the frontend
 
 ```bash
-php artisan test            # full suite (Pest/PHPUnit)
-vendor/bin/pint --dirty     # code style (run before finalizing PHP changes)
+npm run build        # production assets (run again after any CSS/JS change)
+# or: npm run dev    # live rebuild while developing
 ```
 
-Must-pass behaviors are listed in `final-plan.md` §5 (status outcomes, incident thresholds,
-SSRF blocks, secret redaction).
+> Seeing *“Unable to locate file in Vite manifest”*? You skipped this step — run
+> `npm run build`.
 
-## Roadmap
+### 5. Run it (three moving parts)
 
-- **Now (V1+V2):** everything in the table above.
-- **Later (V3, structure-ready):** Telegram/Discord/Slack channels, SLA reports, TCP/DNS/Ping/
-  SSL-expiry monitors behind a `MonitorChecker` interface, multi-page / multi-tenant support.
+| Part | Command | Purpose |
+|---|---|---|
+| Web app | `composer run dev` **(easiest: runs all three)** | Serves the site |
+| — or individually | `php artisan serve` | Site at `http://localhost:8000` |
+| Queue worker | `php artisan queue:work` | Actually performs the checks |
+| Scheduler | `php artisan schedule:run` every minute (cron, see below) | Dispatches due checks, nightly stats + cleanup |
+
+Without the **queue worker**, no checks ever run (the Monitoring page heartbeat will
+show “Stale”). Without the **scheduler**, nothing is dispatched on time.
+
+**Scheduler cron (Linux production):**
+
+```cron
+* * * * * cd /path/to/status-page && php artisan schedule:run >> /dev/null 2>&1
+```
+
+**Queue worker (production):** keep `php artisan queue:work --tries=3` alive with
+Supervisor/systemd. On Laragon/Windows dev, one terminal with `composer run dev`
+covers everything.
+
+### 6. Log in
+
+- **Local dev:** email `admin@example.com`, password `password`
+  (created by the seeder, local environments only — change it immediately:
+  log in → top-right menu → update profile/password).
+- **Production:** the seeder never creates users there — add your first admin
+  (see [Admin users](#admin-users--roles)).
+
+Admin panel lives at `/admin/status` (prefix changeable in Settings → General).
+
+---
+
+## Admin users & roles
+
+There is intentionally **no click-to-create-admin UI** (fewer attack paths). Manage
+admins with the seeder + one-liners:
+
+```bash
+# Create (or find) a user and make them super-admin
+php artisan tinker --execute '$u = App\Models\User::firstOrCreate(["email" => "you@company.com"], ["name" => "Your Name", "password" => Hash::make("Choose-A-Strong-Password")]); $u->assignRole("super-admin");'
+
+# Give an existing user a different role
+php artisan tinker --execute 'App\Models\User::where("email", "teammate@company.com")->first()->syncRoles(["status-manager"]);'
+```
+
+| Role | Can do |
+|---|---|
+| `super-admin` | Everything, including Settings and audit log |
+| `status-manager` | Everything **except** Settings |
+| `status-viewer` | View services, monitoring, incidents, maintenance (read-only) |
+
+Under the hood these map to 18 granular `status.*` permissions (Spatie), enforced
+on every admin route.
+
+---
+
+## Everyday use (no code needed)
+
+1. **Add your first service** — Admin → Services → New service. Fill in the name and
+   URL, keep the defaults, save, then press **Check now**. Green badge = you’re monitored.
+2. **Make the check meaningful** — Edit the service → Assertions: expected status codes
+   (e.g. `200`), max response time, text the page must contain. Use **Test Request**
+   to preview the result before saving.
+3. **Set up alerts** — Settings → Mail: enter SMTP credentials → **Send test email**.
+   Then Notifications → Channels/Rules: decide who gets emailed (or webhook-called)
+   for failures, recoveries, and incidents. Visitors can also self-subscribe on the
+   public page.
+4. **Brand it** — Settings → Branding: upload logo (+ dark variant) and favicon,
+   set the app name. It appears on the public page, admin panel, and emails.
+5. **Schedule maintenance** — Maintenance → Schedule: affected services automatically
+   show “Scheduled Maintenance” during the window instead of alerting.
+6. **Handle an incident** — open ones appear on the Dashboard; post updates as you
+   investigate; resolving notifies subscribers automatically.
+7. **Watch the engine** — Monitoring shows queue depth, failed jobs, and heartbeat.
+   Heartbeat “Stale” = your queue worker/scheduler isn’t running (see step 5).
+
+**Public links to share:** `/` (status home) · `/api/status` (JSON API) ·
+`/status/badge.svg` (embeddable badge) · per-service pages linked from the home page.
+
+---
+
+## Going live (production checklist)
+
+- [ ] `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL` = real https URL, then
+      `php artisan config:cache && php artisan route:cache && npm run build`.
+- [ ] HTTPS enabled (required — auth cookies are secure).
+- [ ] MySQL/MariaDB (not SQLite), with backups.
+- [ ] Cron runs `schedule:run` every minute; queue worker supervised and restarted
+      on deploy (`php artisan queue:restart`).
+- [ ] First admin created via tinker (above); local `admin@example.com` does not exist
+      in production by design.
+- [ ] Settings → Mail filled + test email received; alert rules reviewed.
+- [ ] Settings → General: app name, timezone, public-page toggles; Branding uploaded.
+- [ ] `storage:link` in place so logos resolve.
+- [ ] Public page cached 15–30 s and auto-invalidated on state flips — no action needed.
+
+---
+
+## Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| Heartbeat “Stale”, checks never run | Start `php artisan queue:work` and the every-minute scheduler |
+| “Vite manifest” error | Run `npm run build` |
+| Login page loops / 419 | `APP_URL` must match the URL you visit; clear cookies |
+| Logos don’t show | Run `php artisan storage:link` |
+| No emails arrive | Settings → Mail: verify SMTP, use Test email; check Mailpit (`localhost:1025`) in dev; check Deliveries page for `failed` rows (errors logged without secrets) |
+| A service flaps up/down | Raise its “min failures before down” (per-service or global) |
+| Public page looks outdated | It’s cached briefly by design; flips invalidate it within seconds |
+
+---
+
+## For developers (technical)
+
+**Stack:** Laravel 13 · PHP 8.4 · MySQL/MariaDB · database queue · Tabler v1 (npm +
+Vite) + Tom Select + Monaco + ApexCharts · Spatie Permission · PHPUnit 12 · Pint.
+
+**Architecture:** slim controllers (Validate → Authorize → Service → View);
+`StatusRequestDefinition` DTO shared by scheduled checks and Test Request;
+`app/Services/Status/*` (`RequestBuilder`, `HttpChecker`, `AssertionEngine`,
+`StatusCalculator`, `IncidentManager`, `SsrfGuard`, `PublicStatusService`, …);
+`app/Jobs/Status/CheckService` on the `database` queue; events
+(`ServiceCheckCompleted`, `ServiceWentDown`, `ServiceBecameDegraded`,
+`ServiceRecovered`, `IncidentCreated/Resolved`, …) decoupling notifications.
+Typed PHP enums for every status. Secrets stored `encrypted:array`, redacted in
+logs/audit/test output. Global helpers in `app/helper/helper.php`
+(`setting()`, `admin_base_path()`, `branding_asset()`, …).
+
+**Key routes:**
+
+```text
+/                                     public home (subdomain-ready)
+/status · /status/services/{slug} · /status/incidents/{incident}
+/status/{subscribe,verify/{token},unsubscribe/{token},badge.svg,refresh}
+/api/status · /api/status/services · /api/status/services/{slug} · /api/status/incidents
+/admin/status/{dashboard,monitoring,services,groups,incidents,maintenances,notifications/{channels,rules,subscribers,deliveries},settings,audit-logs}
+```
+
+**Commands:** `status:dispatch-due` (every minute) · `status:calculate-daily` (00:10) ·
+`status:cleanup` (01:00) · `status:recalculate` · `status:test --service=ID`.
+
+```bash
+php artisan test            # full suite (19 tests, must stay green)
+vendor/bin/pint --dirty     # code style — run before finalizing PHP changes
+```
+
+**Docs:** [`features.md`](features.md) capability catalog ·
+[`final-plan.md`](final-plan.md) build spec · [`notification-plan.md`](notification-plan.md)
+notification deep-dive · [`plan.md`](plan.md) original brainstorm.
 
 ## License
 
-Built on the [Laravel framework](https://laravel.com) (MIT). Application code follows the
-repo’s own license once added.
+Built on the [Laravel framework](https://laravel.com) (MIT). Application code follows
+the repo’s own license once added.
