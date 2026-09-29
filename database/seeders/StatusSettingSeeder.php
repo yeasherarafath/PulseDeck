@@ -34,6 +34,7 @@ class StatusSettingSeeder extends Seeder
         ['key' => 'default_timeout', 'value' => '15', 'type' => SettingType::Integer, 'group' => SettingGroup::Monitoring, 'encrypted' => false, 'description' => 'Default request timeout in seconds.'],
         ['key' => 'default_connect_timeout', 'value' => '5', 'type' => SettingType::Integer, 'group' => SettingGroup::Monitoring, 'encrypted' => false, 'description' => 'Default connection timeout in seconds.'],
         ['key' => 'failure_threshold', 'value' => '3', 'type' => SettingType::Integer, 'group' => SettingGroup::Monitoring, 'encrypted' => false, 'description' => 'Consecutive failures before an incident opens.'],
+        ['key' => 'min_failed_checks_down', 'value' => '1', 'type' => SettingType::Integer, 'group' => SettingGroup::Monitoring, 'encrypted' => false, 'description' => 'Consecutive failed checks before a service is shown as down. Single blips stay hidden when raised.'],
         ['key' => 'recovery_threshold', 'value' => '2', 'type' => SettingType::Integer, 'group' => SettingGroup::Monitoring, 'encrypted' => false, 'description' => 'Consecutive successes before an incident resolves.'],
         ['key' => 'stale_after_multiplier', 'value' => '3', 'type' => SettingType::Integer, 'group' => SettingGroup::Monitoring, 'encrypted' => false, 'description' => 'Intervals without a check before a service shows Unknown.'],
         // Public page

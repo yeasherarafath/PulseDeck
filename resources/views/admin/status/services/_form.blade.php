@@ -348,6 +348,12 @@
                             <input type="number" class="form-control" id="f-maxred" name="max_redirects" value="{{ old('max_redirects', $service?->max_redirects ?? 5) }}" min="0" max="20" />
                         </div>
                         <div class="col-md-6">
+                            <label class="form-label" for="f-mindown">Min failures before down</label>
+                            <input type="number" class="form-control" id="f-mindown" name="min_failed_checks_down" value="{{ old('min_failed_checks_down', $service?->min_failed_checks_down) }}" min="1" max="100" placeholder="Global default ({{ $globalMinDown ?? 1 }})" />
+                            <div class="form-hint">Consecutive failed checks before this service shows as down. Blank uses the global default.</div>
+                            @error('min_failed_checks_down')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
                             <label class="form-check form-switch">
                                 <input type="checkbox" class="form-check-input" name="verify_ssl" value="1" @checked(old('verify_ssl', $service?->verify_ssl ?? true)) />
                                 <span class="form-check-label">Verify SSL certificate</span>

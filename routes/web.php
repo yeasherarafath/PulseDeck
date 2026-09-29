@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\Status\AuditLogController;
 use App\Http\Controllers\Admin\Status\DashboardController;
+use App\Http\Controllers\Admin\Status\GroupController;
 use App\Http\Controllers\Admin\Status\IncidentController;
 use App\Http\Controllers\Admin\Status\MaintenanceController;
 use App\Http\Controllers\Admin\Status\MonitoringController;
@@ -30,6 +31,13 @@ Route::prefix(trim((string) config('status.admin_prefix', 'admin'), '/').'/statu
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('monitoring', MonitoringController::class)->name('monitoring')->middleware('permission:status.monitoring.view');
+
+    Route::prefix('groups')->name('groups.')->group(function () {
+        Route::get('/', [GroupController::class, 'index'])->name('index')->middleware('permission:status.services.view');
+        Route::post('/', [GroupController::class, 'store'])->name('store')->middleware('permission:status.services.create');
+        Route::put('{group}', [GroupController::class, 'update'])->name('update')->middleware('permission:status.services.update');
+        Route::delete('{group}', [GroupController::class, 'destroy'])->name('destroy')->middleware('permission:status.services.delete');
+    });
 
     Route::prefix('services')->name('services.')->group(function () {
         Route::get('/', [ServiceController::class, 'index'])->name('index')->middleware('permission:status.services.view');

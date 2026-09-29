@@ -55,6 +55,8 @@
                         <dd class="col-8">{{ $service->group?->name ?? '—' }}</dd>
                         <dt class="col-4">Interval / timeout</dt>
                         <dd class="col-8">every {{ $service->check_interval }}s &middot; timeout {{ $service->timeout }}s (connect {{ $service->connect_timeout }}s)</dd>
+                        <dt class="col-4">Min failures before down</dt>
+                        <dd class="col-8">{{ $service->min_failed_checks_down ?? 'global default ('.setting('min_failed_checks_down', 1).')' }}</dd>
                         <dt class="col-4">Expected statuses</dt>
                         <dd class="col-8">{{ implode(', ', $service->expected_status_codes ?? []) }}</dd>
                         <dt class="col-4">Last checked</dt>

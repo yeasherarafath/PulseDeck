@@ -1,7 +1,9 @@
 import '@tabler/core/dist/js/tabler.min.js';
+import * as bootstrap from 'bootstrap';
 import TomSelect from 'tom-select';
 import { getTheme, setTheme } from './theme.js';
 
+window.bootstrap = bootstrap;
 window.TomSelect = TomSelect;
 
 document.addEventListener('DOMContentLoaded', () => {

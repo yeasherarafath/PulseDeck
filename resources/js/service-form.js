@@ -286,9 +286,25 @@ function initTestRequest() {
                     body: JSON.stringify(buildPayload()),
                 });
 
-                if (response.status === 422) {
+                const contentType = response.headers.get('content-type') ?? '';
+                const isJson = contentType.includes('application/json');
+
+                if (response.status === 422 && isJson) {
                     const data = await response.json();
                     renderTestResult(`<div class="alert alert-danger" role="alert"><h4 class="alert-title">Validation failed</h4><ul class="mb-0">${Object.values(data.errors ?? {}).flat().map((message) => `<li>${escapeHtml(message)}</li>`).join('')}</ul></div>`);
+
+                    return;
+                }
+
+                if (response.status === 419) {
+                    renderTestResult(`<div class="alert alert-danger" role="alert"><h4 class="alert-title">Session expired</h4><p class="mb-0">Reload the page and try again.</p></div>`);
+
+                    return;
+                }
+
+                if (!response.ok || !isJson) {
+                    const text = isJson ? '' : (await response.text()).slice(0, 300);
+                    renderTestResult(`<div class="alert alert-danger" role="alert"><h4 class="alert-title">Test failed (HTTP ${response.status})</h4><p class="mb-0">${text ? escapeHtml(text) : 'The server did not return a result. Check the application logs.'}</p></div>`);
 
                     return;
                 }
@@ -384,6 +400,7 @@ function renderOutcome(data) {
 
     const rows = [
         ['Method / URL', `${escapeHtml(outcome.request?.method ?? '')} ${escapeHtml(outcome.request?.url ?? '')}`],
+        ['Requested at', escapeHtml(outcome.requested_at || '—')],
         ['HTTP status', outcome.http_status ?? '—'],
         ['Result', `<span class="badge bg-${color}-lt">${escapeHtml(data.result)}</span>`],
         ['Response time', outcome.response_time_ms != null ? `${outcome.response_time_ms} ms` : '—'],
@@ -424,9 +441,39 @@ function renderTestResult(html) {
 function showTestModal() {
     const modal = document.getElementById('test-modal');
 
-    if (modal && window.bootstrap?.Modal) {
-        window.bootstrap.Modal.getOrCreateInstance(modal).show();
+    if (!modal) {
+        return;
     }
+
+    if (window.bootstrap?.Modal) {
+        window.bootstrap.Modal.getOrCreateInstance(modal).show();
+
+        return;
+    }
+
+    // Fallback when Bootstrap JS is unavailable: reveal the modal plainly.
+    modal.classList.add('show');
+    modal.style.display = 'block';
+    modal.removeAttribute('aria-hidden');
+
+    if (!document.querySelector('.modal-backdrop.fallback')) {
+        const backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop fade show fallback';
+        backdrop.addEventListener('click', hideTestModalFallback);
+        document.body.appendChild(backdrop);
+    }
+
+    modal.querySelectorAll('[data-bs-dismiss="modal"]').forEach((button) => {
+        button.addEventListener('click', hideTestModalFallback, { once: true });
+    });
+}
+
+function hideTestModalFallback() {
+    const modal = document.getElementById('test-modal');
+
+    modal?.classList.remove('show');
+    modal?.style.removeProperty('display');
+    document.querySelectorAll('.modal-backdrop.fallback').forEach((el) => el.remove());
 }
 
 function escapeHtml(value) {

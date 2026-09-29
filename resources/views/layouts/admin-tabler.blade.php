@@ -38,7 +38,12 @@
                 <div class="collapse navbar-collapse" id="sidebar-menu">
                     <ul class="navbar-nav pt-lg-3">
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('admin.status.dashboard') }}">
+                            <span class="nav-link disabled">
+                                <span class="nav-link-title text-uppercase small">Monitor</span>
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link{{ request()->routeIs('admin.status.dashboard') ? ' active' : '' }}" href="{{ route('admin.status.dashboard') }}">
                                 <span class="nav-link-icon d-md-none d-lg-inline-block">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg>
                                 </span>
@@ -47,47 +52,91 @@
                         </li>
                         @can('status.services.view')
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('admin.status.services.index') }}">
+                                <a class="nav-link{{ request()->routeIs('admin.status.services.*') ? ' active' : '' }}" href="{{ route('admin.status.services.index') }}">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12h4l3 8 4 -16 3 8h4" /></svg>
+                                    </span>
                                     <span class="nav-link-title">Services</span>
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link{{ request()->routeIs('admin.status.groups.*') ? ' active' : '' }}" href="{{ route('admin.status.groups.index') }}">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-11a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2" /></svg>
+                                    </span>
+                                    <span class="nav-link-title">Groups</span>
+                                </a>
+                            </li>
                         @endcan
+                        @can('status.monitoring.view')
+                            <li class="nav-item">
+                                <a class="nav-link{{ request()->routeIs('admin.status.monitoring') ? ' active' : '' }}" href="{{ route('admin.status.monitoring') }}">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 17l6 -6l4 4l8 -8" /><path d="M14 7l7 0l0 7" /></svg>
+                                    </span>
+                                    <span class="nav-link-title">Monitoring</span>
+                                </a>
+                            </li>
+                        @endcan
+                        <li class="nav-item">
+                            <span class="nav-link disabled">
+                                <span class="nav-link-title text-uppercase small">Respond</span>
+                            </span>
+                        </li>
                         @can('status.incidents.view')
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('admin.status.incidents.index') }}">
+                                <a class="nav-link{{ request()->routeIs('admin.status.incidents.*') ? ' active' : '' }}" href="{{ route('admin.status.incidents.index') }}">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4" /><path d="M12 17v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.84 2.75" /></svg>
+                                    </span>
                                     <span class="nav-link-title">Incidents</span>
                                 </a>
                             </li>
                         @endcan
                         @can('status.maintenance.view')
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('admin.status.maintenances.index') }}">
+                                <a class="nav-link{{ request()->routeIs('admin.status.maintenances.*') ? ' active' : '' }}" href="{{ route('admin.status.maintenances.index') }}">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 7v5l4 2" /></svg>
+                                    </span>
                                     <span class="nav-link-title">Maintenance</span>
                                 </a>
                             </li>
                         @endcan
-                        @can('status.monitoring.view')
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('admin.status.monitoring') }}">
-                                    <span class="nav-link-title">Monitoring</span>
-                                </a>
-                            </li>
-                        @endcan
+                        <li class="nav-item">
+                            <span class="nav-link disabled">
+                                <span class="nav-link-title text-uppercase small">Configure</span>
+                            </span>
+                        </li>
                         @can('status.notifications.manage')
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('admin.status.notifications.channels') }}">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle{{ request()->routeIs('admin.status.notifications.*') ? ' active' : '' }}" href="#sidebar-notifications" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="{{ request()->routeIs('admin.status.notifications.*') ? 'true' : 'false' }}">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9h-18s3 -2 3 -9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
+                                    </span>
                                     <span class="nav-link-title">Notifications</span>
                                 </a>
+                                <div class="dropdown-menu{{ request()->routeIs('admin.status.notifications.*') ? ' show' : '' }}">
+                                    <a class="dropdown-item{{ request()->routeIs('admin.status.notifications.channels') ? ' active' : '' }}" href="{{ route('admin.status.notifications.channels') }}">Channels</a>
+                                    <a class="dropdown-item{{ request()->routeIs('admin.status.notifications.rules') ? ' active' : '' }}" href="{{ route('admin.status.notifications.rules') }}">Rules</a>
+                                    <a class="dropdown-item{{ request()->routeIs('admin.status.notifications.subscribers') ? ' active' : '' }}" href="{{ route('admin.status.notifications.subscribers') }}">Subscribers</a>
+                                </div>
                             </li>
                         @endcan
                         @can('status.settings.manage')
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('admin.status.settings') }}">
+                                <a class="nav-link{{ request()->routeIs('admin.status.settings*') ? ' active' : '' }}" href="{{ route('admin.status.settings') }}">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 6a2 2 0 1 0 -4 0a2 2 0 0 0 4 0z" /><path d="M4 6h8" /><path d="M16 6h4" /><path d="M8 12a2 2 0 1 0 -4 0a2 2 0 0 0 4 0z" /><path d="M4 12h2" /><path d="M10 12h10" /><path d="M17 18a2 2 0 1 0 -4 0a2 2 0 0 0 4 0z" /><path d="M4 18h11" /><path d="M19 18h1" /></svg>
+                                    </span>
                                     <span class="nav-link-title">Settings</span>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('admin.status.audit-logs') }}">
+                                <a class="nav-link{{ request()->routeIs('admin.status.audit-logs') ? ' active' : '' }}" href="{{ route('admin.status.audit-logs') }}">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2" /><path d="M9 3h6a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-6a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1" /><path d="M9 12h6" /><path d="M9 16h6" /></svg>
+                                    </span>
                                     <span class="nav-link-title">Audit log</span>
                                 </a>
                             </li>

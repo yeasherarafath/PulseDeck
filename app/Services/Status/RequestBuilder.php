@@ -147,6 +147,7 @@ class RequestBuilder
             'is_active' => (bool) ($input['is_active'] ?? false),
             'is_public' => (bool) ($input['is_public'] ?? false),
             'sort_order' => (int) ($input['sort_order'] ?? 0),
+            'min_failed_checks_down' => $this->nullableInt($input['min_failed_checks_down'] ?? null),
         ];
     }
 

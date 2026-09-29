@@ -88,6 +88,7 @@ class StatusServiceRequest extends FormRequest
             'is_active' => ['sometimes', 'boolean'],
             'is_public' => ['sometimes', 'boolean'],
             'sort_order' => ['sometimes', 'integer', 'min:0', 'max:999999'],
+            'min_failed_checks_down' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
     }
 

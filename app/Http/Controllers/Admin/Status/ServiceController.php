@@ -174,6 +174,7 @@ class ServiceController extends Controller
             'jsonAssertions' => $old('json_assertions', $this->storedRows($service?->json_assertions, ['path' => '', 'operator' => 'equals', 'expected' => ''])),
             'headerAssertions' => $old('header_assertions', $this->storedRows($service?->header_assertions, ['header' => '', 'operator' => 'contains', 'expected' => ''])),
             'expectedStatuses' => $old('expected_statuses', implode(', ', $service?->expected_status_codes ?? [200])),
+            'globalMinDown' => (int) setting('min_failed_checks_down', 1),
         ];
     }
 

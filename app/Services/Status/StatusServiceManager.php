@@ -127,6 +127,7 @@ class StatusServiceManager
             'result' => $result->value,
             'outcome' => [
                 'request' => $definition->forLogging(),
+                'requested_at' => now()->toDateTimeString(),
                 'http_status' => $outcome->httpStatus,
                 'response_time_ms' => $outcome->responseTimeMs,
                 'connect_time_ms' => $outcome->connectTimeMs,

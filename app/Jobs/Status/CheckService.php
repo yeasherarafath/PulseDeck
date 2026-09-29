@@ -10,6 +10,7 @@ use App\Events\Status\ServiceCheckCompleted;
 use App\Events\Status\ServiceRecovered;
 use App\Events\Status\ServiceWentDown;
 use App\Models\Status\StatusService;
+use App\Models\Status\StatusSetting;
 use App\Services\Status\AssertionEngine;
 use App\Services\Status\AssertionResult;
 use App\Services\Status\CheckOutcome;
@@ -130,7 +131,7 @@ class CheckService implements ShouldQueue
             'checked_at' => now(),
         ]);
 
-        $service->recordCheckResult($result, $result->toServiceStatus());
+        $service->recordCheckResult($result, $this->effectiveStatus($service, $result, $previous));
 
         $incidents->handleResult($service->fresh(), $outcome, $assertionResult, $result);
 
@@ -138,12 +139,45 @@ class CheckService implements ShouldQueue
 
         ServiceCheckCompleted::dispatch($service->fresh(), $outcome, $assertionResult, $result);
 
-        if ($result->toServiceStatus() !== $previous) {
+        if ($service->fresh()->current_status !== $previous) {
             Cache::forget(PublicStatusService::CACHE_KEY);
             Cache::forget(PublicStatusService::serviceKey($service->id));
         }
 
         Cache::put('status:monitor:heartbeat', now()->timestamp, 600);
+    }
+
+    /**
+     * A service is only shown as down after enough consecutive failures:
+     * the service's own min_failed_checks_down wins, falling back to the
+     * global setting (default 1 = immediate). The failed check row is
+     * always recorded; only the public status flip is gated.
+     */
+    private function effectiveStatus(StatusService $service, CheckResultStatus $result, ServiceStatus $previous): ServiceStatus
+    {
+        $status = $result->toServiceStatus();
+
+        if ($result !== CheckResultStatus::Failed) {
+            return $status;
+        }
+
+        $minimum = max(1, $service->min_failed_checks_down ?? (int) StatusSetting::get('min_failed_checks_down', 1));
+
+        if ($minimum <= 1) {
+            return $status;
+        }
+
+        $consecutive = $service->checks()
+            ->orderByDesc('checked_at')
+            ->orderByDesc('id')
+            ->limit($minimum)
+            ->pluck('success');
+
+        if ($consecutive->count() === $minimum && $consecutive->every(fn ($success) => ! (bool) $success)) {
+            return $status;
+        }
+
+        return $previous;
     }
 
     private function fireTransitionEvents(

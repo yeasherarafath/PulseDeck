@@ -13,6 +13,6 @@
         'formMethod' => 'PUT',
         'submitLabel' => 'Save changes',
         'canTest' => auth()->user()->can('status.monitoring.run'),
-        'testUrl' => route('admin.status.services.test', $service),
+        'testUrl' => route('admin.status.services.test-unsaved'),
     ])
 @endsection
