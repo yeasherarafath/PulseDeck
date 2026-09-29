@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-bs-theme="light" data-theme-default="light">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-bs-theme="light" data-theme-default="light" data-bs-navbar-position="vertical">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -37,11 +37,7 @@
                 </h1>
                 <div class="collapse navbar-collapse" id="sidebar-menu">
                     <ul class="navbar-nav pt-lg-3">
-                        <li class="nav-item">
-                            <span class="nav-link disabled">
-                                <span class="nav-link-title text-uppercase small">Monitor</span>
-                            </span>
-                        </li>
+                        <li class="nav-section-title">Monitor</li>
                         <li class="nav-item">
                             <a class="nav-link{{ request()->routeIs('admin.status.dashboard') ? ' active' : '' }}" href="{{ route('admin.status.dashboard') }}">
                                 <span class="nav-link-icon d-md-none d-lg-inline-block">
@@ -78,11 +74,7 @@
                                 </a>
                             </li>
                         @endcan
-                        <li class="nav-item">
-                            <span class="nav-link disabled">
-                                <span class="nav-link-title text-uppercase small">Respond</span>
-                            </span>
-                        </li>
+                        <li class="nav-section-title">Respond</li>
                         @can('status.incidents.view')
                             <li class="nav-item">
                                 <a class="nav-link{{ request()->routeIs('admin.status.incidents.*') ? ' active' : '' }}" href="{{ route('admin.status.incidents.index') }}">
@@ -103,11 +95,7 @@
                                 </a>
                             </li>
                         @endcan
-                        <li class="nav-item">
-                            <span class="nav-link disabled">
-                                <span class="nav-link-title text-uppercase small">Configure</span>
-                            </span>
-                        </li>
+                        <li class="nav-section-title">Configure</li>
                         @can('status.notifications.manage')
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle{{ request()->routeIs('admin.status.notifications.*') ? ' active' : '' }}" href="#sidebar-notifications" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="{{ request()->routeIs('admin.status.notifications.*') ? 'true' : 'false' }}">
@@ -145,33 +133,33 @@
                 </div>
             </div>
         </aside>
-        <header class="navbar navbar-expand-md d-none d-lg-flex d-print-none">
-            <div class="container-xl">
-                <div class="navbar-nav flex-row order-md-last ms-auto">
-                    <div class="nav-item me-2">
-                        <x-theme-toggle />
-                    </div>
-                    @auth
-                        <div class="nav-item dropdown">
-                            <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" aria-label="Open user menu">
-                                <span class="avatar avatar-sm">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}</span>
-                                <div class="d-none d-xl-block ps-2">
-                                    <div>{{ auth()->user()->name }}</div>
-                                    <div class="mt-1 small text-secondary">{{ auth()->user()->email }}</div>
-                                </div>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <button type="submit" class="dropdown-item">Logout</button>
-                                </form>
-                            </div>
-                        </div>
-                    @endauth
-                </div>
-            </div>
-        </header>
         <div class="page-wrapper">
+            <header class="navbar navbar-expand-md d-none d-lg-flex d-print-none">
+                <div class="container-xl">
+                    <div class="navbar-nav flex-row order-md-last ms-auto">
+                        <div class="nav-item me-2">
+                            <x-theme-toggle />
+                        </div>
+                        @auth
+                            <div class="nav-item dropdown">
+                                <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" aria-label="Open user menu">
+                                    <span class="avatar avatar-sm">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}</span>
+                                    <div class="d-none d-xl-block ps-2">
+                                        <div>{{ auth()->user()->name }}</div>
+                                        <div class="mt-1 small text-secondary">{{ auth()->user()->email }}</div>
+                                    </div>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item">Logout</button>
+                                    </form>
+                                </div>
+                            </div>
+                        @endauth
+                    </div>
+                </div>
+            </header>
             <div class="page-header d-print-none">
                 <div class="container-xl">
                     <div class="row g-2 align-items-center">
