@@ -87,6 +87,8 @@ class StatusServiceRequest extends FormRequest
 
             'is_active' => ['sometimes', 'boolean'],
             'is_public' => ['sometimes', 'boolean'],
+            'notify_on_failure' => ['sometimes', 'boolean'],
+            'notify_on_recovery' => ['sometimes', 'boolean'],
             'sort_order' => ['sometimes', 'integer', 'min:0', 'max:999999'],
             'min_failed_checks_down' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
@@ -159,7 +161,7 @@ class StatusServiceRequest extends FormRequest
         $validated = $this->validated();
 
         // Normalize checkbox absence (unchecked switches are not submitted).
-        foreach (['follow_redirects', 'verify_ssl', 'is_active', 'is_public'] as $flag) {
+        foreach (['follow_redirects', 'verify_ssl', 'is_active', 'is_public', 'notify_on_failure', 'notify_on_recovery'] as $flag) {
             $validated[$flag] = (bool) ($validated[$flag] ?? false);
         }
 

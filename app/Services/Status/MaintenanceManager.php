@@ -51,6 +51,16 @@ class MaintenanceManager
                 MaintenanceEnded::dispatch($maintenance);
             });
 
+        // Windows that expired without ever syncing while active (e.g. the
+        // scheduler was down) must not linger as "scheduled" forever.
+        StatusMaintenance::where('status', MaintenanceStatus::Scheduled)
+            ->where('ends_at', '<', now())
+            ->each(function (StatusMaintenance $maintenance) use (&$ended): void {
+                $maintenance->forceFill(['status' => MaintenanceStatus::Completed])->save();
+                $ended++;
+                MaintenanceEnded::dispatch($maintenance);
+            });
+
         return ['started' => $started, 'ended' => $ended];
     }
 }
