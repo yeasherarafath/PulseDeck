@@ -13,11 +13,20 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class SettingsController extends Controller
 {
     use AuthorizesRequests;
+
+    /**
+     * Branding keys edited as image uploads (drag-drop + preview),
+     * stored on the public disk under branding/.
+     *
+     * @var list<string>
+     */
+    public const BRANDING_FILES = ['logo_path', 'logo_dark_path', 'favicon_path'];
 
     public function index(): View
     {
@@ -63,16 +72,33 @@ class SettingsController extends Controller
         $rules['settings.theme_default'][] = 'in:light,dark';
         $rules['settings.mail_mailer'][] = 'in:smtp,sendmail,log';
         $rules['settings.mail_encryption'][] = 'in:tls,ssl,none';
+        $rules['branding.*'] = ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp,ico', 'max:2048'];
+        $rules['remove_branding.*'] = ['sometimes', 'boolean'];
 
         $validated = $request->validate($rules);
         $input = $validated['settings'] ?? [];
+
+        // Full-form posts (the settings UI sends settings_form=1) treat
+        // missing checkboxes as OFF. Partial payloads (API/tests) only touch
+        // submitted keys and never wipe the rest.
+        $fullForm = (bool) $request->input('settings_form', false);
         $changed = [];
 
         foreach ($rows as $key => $row) {
+            if (in_array($key, self::BRANDING_FILES, true)) {
+                continue; // Handled as uploads below.
+            }
+
             if ($row->type === SettingType::Boolean) {
+                if (! array_key_exists($key, $input) && ! $fullForm) {
+                    continue;
+                }
+
                 $value = ! empty($input[$key]);
+            } elseif (! array_key_exists($key, $input)) {
+                continue;
             } else {
-                $value = $input[$key] ?? null;
+                $value = $input[$key];
             }
 
             // Blank secret fields keep the stored value (forms never prefill them).
@@ -88,9 +114,59 @@ class SettingsController extends Controller
             $changed[] = $key;
         }
 
+        $changed = array_merge($changed, $this->handleBrandingUploads($request));
+
         StatusAuditLog::record('settings.saved', null, null, ['keys' => $changed]);
 
         return redirect()->route('admin.status.settings')->with('status', 'Settings saved.');
+    }
+
+    /**
+     * Store/remove uploaded branding images. Returns changed keys.
+     *
+     * @return list<string>
+     */
+    private function handleBrandingUploads(Request $request): array
+    {
+        $changed = [];
+
+        foreach (self::BRANDING_FILES as $key) {
+            $row = StatusSetting::where('key', $key)->first();
+
+            if (! $row) {
+                continue;
+            }
+
+            if ($request->boolean("remove_branding.{$key}")) {
+                $this->deleteBrandingFile($row->value);
+                StatusSetting::set($key, null, $request->user()->id);
+                $changed[] = $key;
+
+                continue;
+            }
+
+            $file = $request->file("branding.{$key}");
+
+            if (! $file || ! $file->isValid()) {
+                continue;
+            }
+
+            $this->deleteBrandingFile($row->value);
+
+            $path = $file->store('branding', 'public');
+
+            StatusSetting::set($key, $path, $request->user()->id);
+            $changed[] = $key;
+        }
+
+        return $changed;
+    }
+
+    private function deleteBrandingFile(?string $path): void
+    {
+        if ($path && ! str_starts_with($path, 'http')) {
+            Storage::disk('public')->delete($path);
+        }
     }
 
     public function testMail(Request $request): RedirectResponse

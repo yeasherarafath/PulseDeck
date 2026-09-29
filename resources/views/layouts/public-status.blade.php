@@ -4,10 +4,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
-    <title>@yield('meta-title', config('app.name', 'Status') . ' Status')</title>
+    @php($favicon = branding_asset(setting('favicon_path')))
+    @if ($favicon)<link rel="icon" href="{{ $favicon }}" />@endif
+    <title>@yield('meta-title', setting('app_name', config('app.name', 'PulseDeck')) . ' Status')</title>
     <meta name="description" content="@yield('meta-description', 'Live service status and uptime history.')" />
     <link rel="canonical" href="@yield('canonical-url', url()->current())" />
-    <meta property="og:title" content="@yield('meta-title', config('app.name', 'Status') . ' Status')" />
+    <meta property="og:title" content="@yield('meta-title', setting('app_name', config('app.name', 'PulseDeck')) . ' Status')" />
     <meta property="og:description" content="@yield('meta-description', 'Live service status and uptime history.')" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary" />
@@ -30,10 +32,7 @@
         <header class="navbar navbar-expand-md d-print-none">
             <div class="container-xl">
                 <h1 class="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3">
-                    <a href="{{ route('status.index') }}">
-                        <span class="status-dot status-dot-animated bg-green me-1"></span>
-                        {{ config('app.name', 'Status') }}
-                    </a>
+                    <x-app-brand :href="route('status.index')" />
                 </h1>
                 <div class="navbar-nav flex-row order-md-last ms-auto">
                     <div class="nav-item me-2">

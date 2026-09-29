@@ -20,9 +20,10 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('admin.status.settings.update') }}">
+    <form method="POST" action="{{ route('admin.status.settings.update') }}" enctype="multipart/form-data">
         @csrf
         @method('PUT')
+        <input type="hidden" name="settings_form" value="1" />
         <div class="card">
             <div class="card-header">
                 <ul class="nav nav-tabs card-header-tabs" data-bs-toggle="tabs" role="tablist">
@@ -75,6 +76,8 @@
                                             @endforeach
                                         </select>
                                         @if ($setting->description)<div class="form-hint">{{ $setting->description }}</div>@endif
+                                    @elseif (in_array($setting->key, ['logo_path', 'logo_dark_path', 'favicon_path'], true))
+                                        @include('admin.status.settings._branding-field', ['setting' => $setting])
                                     @else
                                         <input type="{{ $setting->type->value === 'integer' ? 'number' : 'text' }}" class="form-control" id="set-{{ $setting->key }}" name="settings[{{ $setting->key }}]" value="{{ old('settings.'.$setting->key, $setting->value) }}" />
                                         @if ($setting->description)<div class="form-hint">{{ $setting->description }}</div>@endif
@@ -85,7 +88,7 @@
                             @if ($group === 'general')
                                 <div class="alert alert-info" role="alert">
                                     Changing the admin prefix moves the admin panel (e.g. <code>backend/status</code>).
-                                    Bookmarks and Fortify login redirects follow automatically; clear any route cache afterwards.
+                                    Bookmarks and login redirects follow automatically; clear any route cache afterwards.
                                 </div>
                             @endif
                         </div>

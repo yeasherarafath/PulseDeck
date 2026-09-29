@@ -14,6 +14,43 @@
     display: none !important;
 }
 
+// --- Brand logo variants (light/dark) ---
+[data-bs-theme='light'] .brand-logo-dark {
+    display: none !important;
+}
+
+[data-bs-theme='dark'] .brand-logo-light {
+    display: none !important;
+}
+
+.brand-logo {
+    height: 2rem;
+    width: auto;
+}
+
+// --- Branding dropzone (settings) ---
+.branding-dropzone .branding-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 5rem;
+    padding: 0.75rem;
+    border: 1px dashed var(--tblr-border-color);
+    border-radius: var(--tblr-border-radius);
+    background: var(--tblr-bg-surface-secondary);
+    cursor: pointer;
+}
+
+.branding-dropzone .branding-preview img {
+    max-height: 4rem;
+    max-width: 100%;
+}
+
+.branding-dropzone.dragging .branding-preview {
+    border-color: var(--tblr-primary);
+    background: var(--tblr-primary-lt);
+}
+
 // --- Tom Select alignment with Tabler CSS vars (dark mode) ---
 [data-bs-theme='dark'] {
     .ts-control,

@@ -63,7 +63,7 @@
                         <div class="card-body">
                             <h3 class="card-title">Post an update</h3>
                             <div class="row g-3">
-                                <div class="col-md-4">
+                                <div class="col-12">
                                     <label class="form-label">Status</label>
                                     <select class="form-select" name="status">
                                         @foreach (\App\Enums\Status\IncidentStatus::cases() as $status)

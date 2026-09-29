@@ -37,4 +37,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.querySelector('[data-status-poll]') || document.getElementById('response-chart')) {
         import('./status-page.js');
     }
+
+    // Branding image dropzones (code-split).
+    if (document.querySelector('[data-branding-dropzone]')) {
+        import('./branding-upload.js');
+    }
 });

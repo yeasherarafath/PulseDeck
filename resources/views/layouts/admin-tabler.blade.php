@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
+    @php($favicon = branding_asset(setting('favicon_path')))
+    @if ($favicon)<link rel="icon" href="{{ $favicon }}" />@endif
     <meta name="description" content="@yield('meta-description', config('app.name') . ' administration')" />
     <title>@yield('title', config('app.name') . ' Admin')</title>
     <script>
@@ -30,10 +32,7 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <h1 class="navbar-brand navbar-brand-autodark">
-                    <a href="{{ route('admin.status.dashboard') }}">
-                        <span class="status-dot status-dot-animated bg-green me-1"></span>
-                        {{ config('app.name', 'Status') }}
-                    </a>
+                    <x-app-brand :href="route('admin.status.dashboard')" />
                 </h1>
                 <div class="collapse navbar-collapse" id="sidebar-menu">
                     <ul class="navbar-nav pt-lg-3">

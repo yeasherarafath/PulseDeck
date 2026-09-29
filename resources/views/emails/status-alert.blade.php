@@ -1,4 +1,8 @@
 <x-mail::message>
+@php($mailLogo = branding_asset(setting('logo_path')))
+@if ($mailLogo)
+<div style="text-align: center; margin-bottom: 16px;"><img src="{{ $mailLogo }}" alt="{{ setting('app_name', config('app.name')) }}" style="height: 40px; max-width: 220px;" /></div>
+@endif
 # {{ $eventLabel }}
 
 {{ $subjectLine }}

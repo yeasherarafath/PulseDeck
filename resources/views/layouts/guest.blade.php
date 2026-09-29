@@ -4,7 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
-    <title>@yield('title', config('app.name', 'Status'))</title>
+    @php($favicon = branding_asset(setting('favicon_path')))
+    @if ($favicon)<link rel="icon" href="{{ $favicon }}" />@endif
+    <title>@yield('title', setting('app_name', config('app.name', 'PulseDeck')))</title>
     <script>
         (function () {
             try {
@@ -22,10 +24,7 @@
     <div class="page page-center">
         <div class="container container-tight py-4">
             <div class="text-center mb-4">
-                <a href="{{ route('status.index') }}" class="navbar-brand navbar-brand-autodark">
-                    <span class="status-dot status-dot-animated bg-green me-1"></span>
-                    {{ config('app.name', 'Status') }}
-                </a>
+                <x-app-brand :href="route('status.index')" />
             </div>
             @yield('content')
         </div>

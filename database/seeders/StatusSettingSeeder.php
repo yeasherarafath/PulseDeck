@@ -15,7 +15,7 @@ class StatusSettingSeeder extends Seeder
      */
     private const DEFAULTS = [
         // General
-        ['key' => 'app_name', 'value' => 'Status', 'type' => SettingType::String, 'group' => SettingGroup::General, 'encrypted' => false, 'description' => 'Status page name shown in headers and titles.'],
+        ['key' => 'app_name', 'value' => 'PulseDeck', 'type' => SettingType::String, 'group' => SettingGroup::General, 'encrypted' => false, 'description' => 'Status page name shown in headers and titles.'],
         ['key' => 'app_tagline', 'value' => 'Service status & uptime', 'type' => SettingType::String, 'group' => SettingGroup::General, 'encrypted' => false, 'description' => 'Short tagline under the page name.'],
         ['key' => 'app_description', 'value' => 'Live service status and uptime history.', 'type' => SettingType::String, 'group' => SettingGroup::General, 'encrypted' => false, 'description' => 'SEO meta description for the public page.'],
         ['key' => 'base_url', 'value' => null, 'type' => SettingType::String, 'group' => SettingGroup::General, 'encrypted' => false, 'description' => 'Canonical base URL (used for links in notifications).'],

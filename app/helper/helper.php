@@ -43,3 +43,22 @@ if (! function_exists('admin_base_path')) {
         return trim((string) config('status.admin_prefix', 'admin'), '/') ?: 'admin';
     }
 }
+
+if (! function_exists('branding_asset')) {
+    /**
+     * Public URL for an uploaded branding file (logo/favicon), or null.
+     * Stored paths are relative to the public disk (e.g. "branding/logo.png").
+     */
+    function branding_asset(?string $path): ?string
+    {
+        if ($path === null || trim($path) === '') {
+            return null;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        return asset('storage/'.ltrim($path, '/'));
+    }
+}
