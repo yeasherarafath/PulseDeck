@@ -14,6 +14,7 @@ use App\Events\Status\ServiceWentDown;
 use App\Models\Status\StatusSetting;
 use App\Services\Status\NotificationManager;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -31,6 +32,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Generated URLs (notifications, signed links, redirects) follow APP_URL.
+        URL::forceScheme('https');
         $this->applyAdminPrefix();
         $this->registerNotificationListeners();
     }
