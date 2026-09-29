@@ -1,0 +1,36 @@
+// Tabler + Tom Select + app-level theme tweaks.
+// ApexCharts and Monaco are installed as dependencies but imported lazily
+// in their respective phases to keep the main bundle lean.
+
+@import '@tabler/core/dist/css/tabler.min.css';
+@import 'tom-select/dist/css/tom-select.bootstrap5.min.css';
+
+// --- Theme toggle icon visibility (paired with x-theme-toggle) ---
+[data-bs-theme='light'] .theme-icon-dark {
+    display: none !important;
+}
+
+[data-bs-theme='dark'] .theme-icon-light {
+    display: none !important;
+}
+
+// --- Tom Select alignment with Tabler CSS vars (dark mode) ---
+[data-bs-theme='dark'] {
+    .ts-control,
+    .ts-dropdown,
+    .ts-dropdown .option {
+        background: var(--tblr-bg-surface);
+        color: var(--tblr-body-color);
+        border-color: var(--tblr-border-color);
+    }
+
+    .ts-dropdown .active,
+    .ts-control .item {
+        background: var(--tblr-bg-surface-secondary);
+        color: var(--tblr-body-color);
+    }
+
+    .ts-control input {
+        color: var(--tblr-body-color);
+    }
+}
