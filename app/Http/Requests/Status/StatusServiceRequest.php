@@ -54,11 +54,11 @@ class StatusServiceRequest extends FormRequest
             'query.*.value' => ['nullable', 'string', 'max:2048'],
 
             'auth.type' => ['required', Rule::in(array_column(AuthType::cases(), 'value'))],
-            'auth.token' => ['required_if:auth.type,bearer', 'nullable', 'string', 'max:4096'],
+            'auth.token' => array_filter([$this->secretRequiredRule('bearer', 'token'), 'nullable', 'string', 'max:4096']),
             'auth.username' => ['required_if:auth.type,basic', 'nullable', 'string', 'max:255'],
-            'auth.password' => ['required_if:auth.type,basic', 'nullable', 'string', 'max:4096'],
+            'auth.password' => array_filter([$this->secretRequiredRule('basic', 'password'), 'nullable', 'string', 'max:4096']),
             'auth.header' => ['required_if:auth.type,api_key', 'nullable', 'string', 'max:255'],
-            'auth.key' => ['required_if:auth.type,api_key', 'nullable', 'string', 'max:4096'],
+            'auth.key' => array_filter([$this->secretRequiredRule('api_key', 'key'), 'nullable', 'string', 'max:4096']),
             'auth.headers' => ['sometimes', 'array'],
 
             'body_type' => ['required', Rule::in(array_column(RequestBodyType::cases(), 'value'))],
@@ -130,6 +130,26 @@ class StatusServiceRequest extends FormRequest
         }
 
         return false;
+    }
+
+    /**
+     * Secret fields show "leave blank to keep" on edit: require a value
+     * only when creating or when nothing is stored yet. Blank submissions
+     * on update keep the stored secret (see keepUnchangedSecrets).
+     */
+    private function secretRequiredRule(string $type, string $key): ?string
+    {
+        $service = $this->route('service');
+
+        $stored = $service && is_array($service->authentication)
+            ? ($service->authentication[$key] ?? null)
+            : null;
+
+        if ($this->isMethod('post') || blank($stored)) {
+            return 'required_if:auth.type,'.$type;
+        }
+
+        return null;
     }
 
     private function jsonBodyRule(): Closure

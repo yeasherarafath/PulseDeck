@@ -161,18 +161,29 @@ class ServiceController extends Controller
 
         $old = fn (string $key, mixed $fallback) => old($key, $fallback);
 
+        // Repeatable row lists must never render empty: the row JS clones
+        // the first row, so an empty container bricks "+ Add" and templates.
+        // (old() can hand back [] after a failed validation round-trip.)
+        $oldRows = fn (string $key, array $fallback) => $old($key, $fallback) ?: $fallback;
+
+        $authData = $old('auth', $this->storedAuth($service));
+
+        if (is_array($authData) && ($authData['headers'] ?? null) === []) {
+            $authData['headers'] = [['name' => '', 'value' => '']];
+        }
+
         return [
             'service' => $service,
             'groups' => StatusServiceGroup::ordered()->get(),
             'presets' => $presets->groupedPresets(),
             'templates' => $presets->activeTemplates(),
-            'headerRows' => $old('headers', $mapToRows(is_array($service?->request_headers) ? $service->request_headers : [], true)),
-            'queryRows' => $old('query', $mapToRows(is_array($service?->query_params) ? $service->query_params : [], false)),
-            'bodyFields' => $old('body_fields', $mapToRows($this->storedBodyMap($service), false)),
-            'authData' => $old('auth', $this->storedAuth($service)),
-            'bodyAssertions' => $old('body_assertions', $this->storedRows($service?->response_assertions, ['type' => 'contains', 'value' => ''])),
-            'jsonAssertions' => $old('json_assertions', $this->storedRows($service?->json_assertions, ['path' => '', 'operator' => 'equals', 'expected' => ''])),
-            'headerAssertions' => $old('header_assertions', $this->storedRows($service?->header_assertions, ['header' => '', 'operator' => 'contains', 'expected' => ''])),
+            'headerRows' => $oldRows('headers', $mapToRows(is_array($service?->request_headers) ? $service->request_headers : [], true)),
+            'queryRows' => $oldRows('query', $mapToRows(is_array($service?->query_params) ? $service->query_params : [], false)),
+            'bodyFields' => $oldRows('body_fields', $mapToRows($this->storedBodyMap($service), false)),
+            'authData' => $authData,
+            'bodyAssertions' => $oldRows('body_assertions', $this->storedRows($service?->response_assertions, ['type' => 'contains', 'value' => ''])),
+            'jsonAssertions' => $oldRows('json_assertions', $this->storedRows($service?->json_assertions, ['path' => '', 'operator' => 'equals', 'expected' => ''])),
+            'headerAssertions' => $oldRows('header_assertions', $this->storedRows($service?->header_assertions, ['header' => '', 'operator' => 'contains', 'expected' => ''])),
             'expectedStatuses' => $old('expected_statuses', implode(', ', $service?->expected_status_codes ?? [200])),
             'globalMinDown' => (int) setting('min_failed_checks_down', 1),
         ];

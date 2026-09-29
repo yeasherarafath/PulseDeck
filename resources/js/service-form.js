@@ -247,15 +247,17 @@ function initTemplates() {
             return;
         }
 
-        container.querySelectorAll('[data-row]').forEach((row) => row.remove());
+        // Add before removing: addRow() clones the first existing row,
+        // so emptying the container first would leave nothing to clone
+        // (and the apply would silently wipe the section).
+        const previous = [...container.querySelectorAll('[data-row]')];
 
         Object.entries(template.headers ?? {}).forEach(([name, value]) => {
             addRow(container, { name, value });
         });
 
-        if (!container.querySelector('[data-row]')) {
-            addRow(container);
-        }
+        previous.forEach((row) => row.remove());
+        reindex(container);
     });
 }
 
@@ -264,7 +266,10 @@ function initTemplates() {
 function initTestRequest() {
     const token = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
-    form.querySelectorAll('[data-test-request]').forEach((button) => {
+    // Document-wide: the result modal (with its own "Test again" button)
+    // lives outside [data-service-form], so a form-scoped query would
+    // leave that button without a handler.
+    document.querySelectorAll('[data-test-request]').forEach((button) => {
         button.addEventListener('click', async () => {
             const url = button.dataset.testUrl;
 
