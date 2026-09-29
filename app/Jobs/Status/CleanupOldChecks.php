@@ -5,6 +5,7 @@ namespace App\Jobs\Status;
 use App\Models\Status\StatusAuditLog;
 use App\Models\Status\StatusCheck;
 use App\Models\Status\StatusDailyStat;
+use App\Models\Status\StatusNotificationDelivery;
 use App\Models\Status\StatusSetting;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -30,5 +31,6 @@ class CleanupOldChecks implements ShouldQueue
         StatusCheck::where('checked_at', '<', now()->subDays($rawDays))->delete();
         StatusDailyStat::where('date', '<', now()->subDays($statsDays)->toDateString())->delete();
         StatusAuditLog::where('created_at', '<', now()->subDays($auditDays))->delete();
+        StatusNotificationDelivery::where('created_at', '<', now()->subDays($auditDays))->delete();
     }
 }

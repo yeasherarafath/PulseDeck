@@ -87,7 +87,7 @@ class AppServiceProvider extends ServiceProvider
 
         Event::listen(ServiceBecameDegraded::class, function (ServiceBecameDegraded $event): void {
             app(NotificationManager::class)->notify(
-                NotificationEvent::ServiceFailed,
+                NotificationEvent::ServiceDegraded,
                 $event->service,
                 "{$event->service->name} is degraded",
                 array_filter([

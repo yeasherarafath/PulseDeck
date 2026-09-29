@@ -147,6 +147,8 @@ class RequestBuilder
             'is_active' => (bool) ($input['is_active'] ?? false),
             'is_public' => (bool) ($input['is_public'] ?? false),
             'sort_order' => (int) ($input['sort_order'] ?? 0),
+            'notify_on_failure' => (bool) ($input['notify_on_failure'] ?? false),
+            'notify_on_recovery' => (bool) ($input['notify_on_recovery'] ?? false),
             'min_failed_checks_down' => $this->nullableInt($input['min_failed_checks_down'] ?? null),
         ];
     }

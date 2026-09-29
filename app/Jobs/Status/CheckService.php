@@ -133,9 +133,11 @@ class CheckService implements ShouldQueue
 
         $service->recordCheckResult($result, $this->effectiveStatus($service, $result, $previous));
 
-        $incidents->handleResult($service->fresh(), $outcome, $assertionResult, $result);
+        $incidentOutcome = $incidents->handleResult($service->fresh(), $outcome, $assertionResult, $result);
 
-        $this->fireTransitionEvents($service, $previous, $result, $outcome);
+        // One recovery = one mail: when an incident auto-resolves in this
+        // same run, its resolution mail replaces the service.recovered mail.
+        $this->fireTransitionEvents($service, $previous, $result, $outcome, $incidentOutcome['resolved'] !== null);
 
         ServiceCheckCompleted::dispatch($service->fresh(), $outcome, $assertionResult, $result);
 
@@ -185,6 +187,7 @@ class CheckService implements ShouldQueue
         ServiceStatus $previous,
         CheckResultStatus $result,
         CheckOutcome $outcome,
+        bool $incidentResolved = false,
     ): void {
         $fresh = $service->fresh() ?? $service;
 
@@ -197,6 +200,10 @@ class CheckService implements ShouldQueue
         if ($result === CheckResultStatus::Degraded && $previous === ServiceStatus::Operational) {
             ServiceBecameDegraded::dispatch($fresh, $outcome);
 
+            return;
+        }
+
+        if ($incidentResolved) {
             return;
         }
 

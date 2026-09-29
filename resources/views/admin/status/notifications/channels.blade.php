@@ -14,6 +14,7 @@
                 <li class="nav-item"><span class="nav-link active">Channels</span></li>
                 <li class="nav-item"><a class="nav-link" href="{{ route('admin.status.notifications.rules') }}">Rules</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ route('admin.status.notifications.subscribers') }}">Subscribers</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ route('admin.status.notifications.deliveries') }}">Deliveries</a></li>
             </ul>
         </div>
         <div class="table-responsive">

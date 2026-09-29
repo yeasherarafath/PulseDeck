@@ -371,6 +371,18 @@
                             <label class="form-label" for="f-ua">Custom User-Agent (optional)</label>
                             <input type="text" class="form-control" id="f-ua" name="user_agent" value="{{ old('user_agent', $service?->user_agent) }}" placeholder="StatusMonitor/1.0" />
                         </div>
+                        <div class="col-md-6">
+                            <label class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input" name="notify_on_failure" value="1" @checked(old('notify_on_failure', $service?->notify_on_failure ?? true)) />
+                                <span class="form-check-label">Notify on failure</span>
+                            </label>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input" name="notify_on_recovery" value="1" @checked(old('notify_on_recovery', $service?->notify_on_recovery ?? true)) />
+                                <span class="form-check-label">Notify on recovery</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>

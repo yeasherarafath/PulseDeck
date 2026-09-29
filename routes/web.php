@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\Status\AuditLogController;
 use App\Http\Controllers\Admin\Status\DashboardController;
+use App\Http\Controllers\Admin\Status\DeliveryController;
 use App\Http\Controllers\Admin\Status\GroupController;
 use App\Http\Controllers\Admin\Status\IncidentController;
 use App\Http\Controllers\Admin\Status\MaintenanceController;
@@ -98,6 +99,7 @@ Route::prefix(trim((string) config('status.admin_prefix', 'admin'), '/').'/statu
         Route::post('rules', [NotificationRuleController::class, 'store'])->name('rules.store');
         Route::delete('rules/{rule}', [NotificationRuleController::class, 'destroy'])->name('rules.destroy');
         Route::get('subscribers', [SubscriberController::class, 'index'])->name('subscribers');
+        Route::get('deliveries', [DeliveryController::class, 'index'])->name('deliveries');
         Route::post('subscribers/{subscriber}/toggle', [SubscriberController::class, 'toggle'])->name('subscribers.toggle');
         Route::delete('subscribers/{subscriber}', [SubscriberController::class, 'destroy'])->name('subscribers.destroy');
     });

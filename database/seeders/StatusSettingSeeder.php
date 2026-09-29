@@ -58,6 +58,7 @@ class StatusSettingSeeder extends Seeder
         ['key' => 'email_alerts_enabled', 'value' => '1', 'type' => SettingType::Boolean, 'group' => SettingGroup::Alerts, 'encrypted' => false, 'description' => 'Master switch for email alerts.'],
         ['key' => 'webhook_alerts_enabled', 'value' => '1', 'type' => SettingType::Boolean, 'group' => SettingGroup::Alerts, 'encrypted' => false, 'description' => 'Master switch for webhook alerts.'],
         ['key' => 'notify_on_service_failed', 'value' => '1', 'type' => SettingType::Boolean, 'group' => SettingGroup::Alerts, 'encrypted' => false, 'description' => 'Notify when a service fails.'],
+        ['key' => 'notify_on_service_degraded', 'value' => '1', 'type' => SettingType::Boolean, 'group' => SettingGroup::Alerts, 'encrypted' => false, 'description' => 'Notify when a service degrades (slow but responding).'],
         ['key' => 'notify_on_service_recovered', 'value' => '1', 'type' => SettingType::Boolean, 'group' => SettingGroup::Alerts, 'encrypted' => false, 'description' => 'Notify when a service recovers.'],
         ['key' => 'notify_on_incident_created', 'value' => '1', 'type' => SettingType::Boolean, 'group' => SettingGroup::Alerts, 'encrypted' => false, 'description' => 'Notify when an incident opens.'],
         ['key' => 'notify_on_incident_updated', 'value' => '1', 'type' => SettingType::Boolean, 'group' => SettingGroup::Alerts, 'encrypted' => false, 'description' => 'Notify on incident updates.'],

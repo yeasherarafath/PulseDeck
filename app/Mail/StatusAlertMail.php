@@ -20,6 +20,7 @@ class StatusAlertMail extends Mailable
         public array $lines = [],
         public ?string $actionUrl = null,
         public string $eventLabel = '',
+        public ?string $unsubscribeUrl = null,
     ) {
         //
     }

@@ -107,6 +107,7 @@
                                     <a class="dropdown-item{{ request()->routeIs('admin.status.notifications.channels') ? ' active' : '' }}" href="{{ route('admin.status.notifications.channels') }}">Channels</a>
                                     <a class="dropdown-item{{ request()->routeIs('admin.status.notifications.rules') ? ' active' : '' }}" href="{{ route('admin.status.notifications.rules') }}">Rules</a>
                                     <a class="dropdown-item{{ request()->routeIs('admin.status.notifications.subscribers') ? ' active' : '' }}" href="{{ route('admin.status.notifications.subscribers') }}">Subscribers</a>
+                                    <a class="dropdown-item{{ request()->routeIs('admin.status.notifications.deliveries') ? ' active' : '' }}" href="{{ route('admin.status.notifications.deliveries') }}">Deliveries</a>
                                 </div>
                             </li>
                         @endcan

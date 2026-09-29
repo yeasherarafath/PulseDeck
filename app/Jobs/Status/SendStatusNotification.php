@@ -6,6 +6,7 @@ use App\Enums\Status\NotificationChannelType;
 use App\Enums\Status\NotificationEvent;
 use App\Mail\StatusAlertMail;
 use App\Models\Status\StatusNotificationChannel;
+use App\Models\Status\StatusNotificationDelivery;
 use App\Models\Status\StatusSetting;
 use App\Services\Status\StatusMailConfig;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -32,6 +33,7 @@ class SendStatusNotification implements ShouldQueue
     /**
      * @param  list<string>  $lines
      * @param  list<string>  $to  Recipient emails (mail channels).
+     * @param  array<string, string>  $unsubscribeTokens  Email => token for per-recipient footers.
      */
     public function __construct(
         public int $channelId,
@@ -41,6 +43,7 @@ class SendStatusNotification implements ShouldQueue
         public array $lines = [],
         public ?string $url = null,
         public array $to = [],
+        public array $unsubscribeTokens = [],
     ) {
         //
     }
@@ -50,6 +53,8 @@ class SendStatusNotification implements ShouldQueue
         $channel = StatusNotificationChannel::find($this->channelId);
 
         if (! $channel || ! $channel->is_active) {
+            $this->record('skipped', 'Channel missing or inactive.', count($this->to));
+
             return;
         }
 
@@ -57,34 +62,65 @@ class SendStatusNotification implements ShouldQueue
             match ($channel->type) {
                 NotificationChannelType::Mail => $this->sendMail(),
                 NotificationChannelType::Webhook => $this->sendWebhook($channel),
-                default => null,
+                default => $this->record('skipped', 'Channel type not implemented.', count($this->to)),
             };
         } catch (\Throwable $exception) {
+            $error = mb_substr($exception->getMessage(), 0, 500);
+
             Log::warning('Status notification failed', [
                 'channel_id' => $channel->id,
                 'channel_type' => $channel->type->value,
                 'event' => $this->event,
-                'error' => mb_substr($exception->getMessage(), 0, 500),
+                'error' => $error,
             ]);
+
+            $this->record('failed', $error);
         }
     }
 
     private function sendMail(): void
     {
         if ($this->to === []) {
+            $this->record('skipped', 'No recipients.', 0);
+
             return;
         }
 
         StatusMailConfig::apply();
 
         $event = NotificationEvent::tryFrom($this->event);
+        $sent = 0;
 
-        Mail::to($this->to)->send(new StatusAlertMail(
+        // Subscribers get individual mails with their own unsubscribe link;
+        // plain channel recipients share one bulk mail without a footer.
+        $bulk = array_diff($this->to, array_keys($this->unsubscribeTokens));
+
+        if ($bulk !== []) {
+            Mail::to(array_values($bulk))->send($this->mailable($event, null));
+            $sent += count($bulk);
+        }
+
+        foreach ($this->unsubscribeTokens as $email => $token) {
+            if (! in_array($email, $this->to, true)) {
+                continue;
+            }
+
+            Mail::to($email)->send($this->mailable($event, route('status.unsubscribe', $token)));
+            $sent++;
+        }
+
+        $this->record('sent', null, $sent);
+    }
+
+    private function mailable(?NotificationEvent $event, ?string $unsubscribeUrl): StatusAlertMail
+    {
+        return new StatusAlertMail(
             subjectLine: $this->subject,
             lines: $this->lines,
             actionUrl: $this->url,
             eventLabel: $event?->label() ?? $this->event,
-        ));
+            unsubscribeUrl: $unsubscribeUrl,
+        );
     }
 
     private function sendWebhook(StatusNotificationChannel $channel): void
@@ -119,5 +155,19 @@ class SendStatusNotification implements ShouldQueue
             ->withHeaders($headers)
             ->post($endpoint, $payload)
             ->throw();
+
+        $this->record('sent', null, 1);
+    }
+
+    private function record(string $status, ?string $error = null, int $recipientCount = 0): void
+    {
+        StatusNotificationDelivery::create([
+            'channel_id' => $this->channelId,
+            'event' => $this->event,
+            'service_id' => $this->serviceId,
+            'recipient_count' => $recipientCount,
+            'status' => $status,
+            'error' => $error,
+        ]);
     }
 }

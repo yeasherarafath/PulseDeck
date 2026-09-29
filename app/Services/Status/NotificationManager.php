@@ -36,6 +36,15 @@ class NotificationManager
             return;
         }
 
+        // Per-service alert preferences win over global rules.
+        if ($service && $event === NotificationEvent::ServiceFailed && ! $service->notify_on_failure) {
+            return;
+        }
+
+        if ($service && $event === NotificationEvent::ServiceRecovered && ! $service->notify_on_recovery) {
+            return;
+        }
+
         $channels = StatusNotificationChannel::where('is_active', true)
             ->whereHas('rules', function ($query) use ($event, $service): void {
                 $query->where('is_active', true)
@@ -60,7 +69,7 @@ class NotificationManager
 
         $webhookAllowed = (bool) StatusSetting::get('webhook_alerts_enabled', true);
 
-        $subscriberEmails = $this->subscriberEmails($event);
+        $subscriberTokens = $this->subscriberTokens($event);
 
         foreach ($channels as $channel) {
             if ($channel->type === NotificationChannelType::Mail && ! $mailAllowed) {
@@ -76,9 +85,11 @@ class NotificationManager
             }
 
             $to = $this->channelRecipients($channel);
+            $tokens = [];
 
             if ($channel->type === NotificationChannelType::Mail) {
-                $to = array_values(array_unique(array_merge($to, $subscriberEmails)));
+                $to = array_values(array_unique(array_merge($to, array_keys($subscriberTokens))));
+                $tokens = array_intersect_key($subscriberTokens, array_flip($to));
             }
 
             if ($channel->type === NotificationChannelType::Mail && $to === []) {
@@ -93,6 +104,7 @@ class NotificationManager
                 array_values($lines),
                 $url,
                 $to,
+                $tokens,
             );
         }
     }
@@ -116,9 +128,11 @@ class NotificationManager
     }
 
     /**
-     * @return list<string>
+     * Verified subscribers as email => unsubscribe token map.
+     *
+     * @return array<string, string>
      */
-    private function subscriberEmails(NotificationEvent $event): array
+    private function subscriberTokens(NotificationEvent $event): array
     {
         if (! in_array($event, self::SUBSCRIBER_EVENTS, true)) {
             return [];
@@ -130,7 +144,8 @@ class NotificationManager
 
         return StatusSubscriber::where('is_active', true)
             ->whereNotNull('verified_at')
-            ->pluck('email')
+            ->whereNotNull('unsubscribe_token')
+            ->pluck('unsubscribe_token', 'email')
             ->all();
     }
 }

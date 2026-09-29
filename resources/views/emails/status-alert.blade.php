@@ -19,4 +19,9 @@ View status page
 
 Thanks,<br>
 {{ setting('app_name', config('app.name')) }}
+@if ($unsubscribeUrl)
+
+---
+<small><a href="{{ $unsubscribeUrl }}">Unsubscribe from these emails</a></small>
+@endif
 </x-mail::message>
