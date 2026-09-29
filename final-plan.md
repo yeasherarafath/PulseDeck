@@ -1,7 +1,7 @@
 # Final Plan — Status Monitoring System (Laravel Latest + Tabler Latest)
 
 > Source: `plan.md` (#1–#128)
-> Decisions locked: Fresh Laravel 12 install (greenfield) · Spatie Permission · Database queue (Laragon-friendly, Redis upgrade path) · Scope **V1+V2 combined** (plan #122 + #123) · PHP Enums everywhere · Laravel best practices · Tabler v1.x premium via npm (not basic CDN) · Laravel Boost installed · Theme dark+light (default light) on admin + public · Expanded `status_settings` (app identity, mail credentials, alert toggles)
+> Decisions locked: Fresh Laravel install (greenfield) · Core auth only — no Fortify/Breeze/Jetstream · Spatie Permission (authorization) · Database queue (Laragon-friendly, Redis upgrade path) · Scope **V1+V2 combined** (plan #122 + #123) · PHP Enums everywhere · Laravel best practices · Tabler v1.x premium via npm (not basic CDN) · Laravel Boost installed · Theme dark+light (default light) on admin + public · Expanded `status_settings` (app identity, mail credentials, alert toggles)
 
 ---
 
@@ -134,6 +134,7 @@ Rules:
 
 ## 3. Best Practices (Laravel latest)
 
+- **Auth (locked): no Fortify/Breeze/Jetstream — Laravel core auth only.** Session guard + `Auth::attempt()` + password broker (`Password::sendResetLink` / `Password::reset`) + `throttle` middleware for login. No auth starter-kit packages, so Tabler views stay hand-owned and the dependency tree stays minimal. Spatie Permission remains the only auth-related package (authorization, not authentication).
 - **Slim controllers:** Validate (`FormRequest`) → Authorize (Spatie `status.*` + Policies, plan #68) → Call Service → Return view/Resource. No monitoring logic in controllers/Blade.
 - **DTO:** `StatusRequestDefinition {method,url,query,headers,auth,body,timeout,redirects,ssl,assertions}` — `RequestBuilder::fromService(): DTO` consumed by `HttpChecker` (plan #82).
 - **Models:** `$fillable` + casts (`encrypted:array` for `request_headers, authentication, channel.config`; enum casts; `datetime`), slug auto-gen + unique (#114), indexes (#113), observers bust `status:public` cache.
@@ -187,6 +188,7 @@ Rules:
 - Layouts: `admin-tabler`, `public-status` — both theme-ready from day one: `<html data-bs-theme>`, inline pre-paint `initTheme()` snippet, `<meta name="color-scheme" content="light dark">`, `x-theme-toggle` component placeholder, CSS-vars only (§3.1); error pages 404/403/500/429 (#99) also themed; SEO defaults (#98).
 - `composer require laravel/boost --dev && php artisan boost:install`; verify MCP + guidelines; use Boost for all later codegen.
 - Install Spatie Permission; seed roles `super-admin, status-manager, status-viewer` + all `status.*` permissions (#68).
+- Core auth only (no Fortify): `LoginController` (`Auth::attempt` + session regenerate + `throttle:5,1`), `logout` (POST), password reset via core `Password` broker with the same Tabler views (`auth/login`, `auth/forgot-password`, `auth/reset-password`), same route names (`login`, `logout`, `password.*`).
 - Create folder skeleton (§1) + empty admin dashboard renders.
 - **Done:** migrate ok, login ok, dashboard renders in Tabler.
 
