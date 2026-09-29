@@ -51,6 +51,37 @@
     background: var(--tblr-primary-lt);
 }
 
+// --- Public status rows: stable right badge column, truncating names ---
+// (The .svc-badge hook is also a JS polling selector — keep the name.)
+.svc-row-name {
+    min-width: 0;
+}
+
+.svc-badge {
+    min-width: 10rem;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.svc-badge .badge {
+    white-space: nowrap;
+}
+
+@media (max-width: 576px) {
+    .svc-badge {
+        min-width: 7rem;
+    }
+}
+
+// --- Uptime bars: scroll instead of crushing on narrow screens ---
+.uptime-bars-scroll {
+    overflow-x: auto;
+}
+
+.uptime-bars-scroll > .d-flex {
+    min-width: 480px;
+}
+
 // --- Tom Select alignment with Tabler CSS vars (dark mode) ---
 [data-bs-theme='dark'] {
     .ts-control,

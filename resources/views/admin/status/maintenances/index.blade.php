@@ -22,7 +22,7 @@
                         <th>Title</th>
                         <th>Services</th>
                         <th>Window</th>
-                        <th>Status</th>
+                        <th class="w-1">Status</th>
                         <th class="w-1"></th>
                     </tr>
                 </thead>
@@ -32,9 +32,9 @@
                             <td>{{ $maintenance->title }}</td>
                             <td>{{ $maintenance->services->pluck('name')->join(', ') }}</td>
                             <td class="text-nowrap">{{ $maintenance->starts_at->format('M j, H:i') }} – {{ $maintenance->ends_at->format('M j, H:i') }}</td>
-                            <td><x-status-badge :status="$maintenance->status" /></td>
+                            <td class="text-nowrap"><x-status-badge :status="$maintenance->status" /></td>
                             <td class="text-end">
-                                <div class="btn-list flex-nowrap">
+                                <div class="btn-list">
                                     @can('status.maintenance.update')
                                         <a href="{{ route('admin.status.maintenances.edit', $maintenance) }}" class="btn btn-sm">Edit</a>
                                         @if (in_array($maintenance->status->value, ['scheduled', 'active'], true))

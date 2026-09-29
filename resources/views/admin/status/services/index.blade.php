@@ -18,7 +18,7 @@
         <div class="card-body">
             <form method="GET" action="{{ route('admin.status.services.index') }}">
                 <div class="row g-2">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <input type="text" class="form-control" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Search by name…" />
                     </div>
                     <div class="col-md-2">
@@ -44,7 +44,7 @@
                             <option value="0" @selected(($filters['active'] ?? '') === '0')>Paused</option>
                         </select>
                     </div>
-                    <div class="col-md-2 d-flex gap-2">
+                    <div class="col-md-3 d-flex gap-2">
                         <button type="submit" class="btn btn-primary flex-fill">Filter</button>
                         <a href="{{ route('admin.status.services.index') }}" class="btn">Reset</a>
                     </div>
@@ -60,7 +60,7 @@
                     <tr>
                         <th>Service</th>
                         <th>Group</th>
-                        <th>Status</th>
+                        <th class="w-1">Status</th>
                         <th>Response</th>
                         <th>Last checked</th>
                         <th>Interval</th>
@@ -77,9 +77,9 @@
                                 <div class="text-secondary small">{{ $service->method->value }} {{ \Illuminate\Support\Str::limit($service->url, 60) }}</div>
                             </td>
                             <td>{{ $service->group?->name ?? '—' }}</td>
-                            <td><x-status-badge :status="$service->current_status" /></td>
+                            <td class="text-nowrap"><x-status-badge :status="$service->current_status" /></td>
                             <td>{{ $latest?->response_time !== null ? $latest->response_time.' ms' : '—' }}</td>
-                            <td>{{ $service->last_checked_at?->diffForHumans() ?? 'never' }}</td>
+                            <td class="text-nowrap">{{ $service->last_checked_at?->diffForHumans() ?? 'never' }}</td>
                             <td>{{ $service->check_interval >= 3600 ? ($service->check_interval / 3600).'h' : ($service->check_interval / 60).'m' }}</td>
                             <td>
                                 @if ($service->is_active)
@@ -88,8 +88,8 @@
                                     <span class="badge bg-secondary-lt">Paused</span>
                                 @endif
                             </td>
-                            <td>
-                                <div class="btn-list flex-nowrap">
+                            <td class="text-end">
+                                <div class="btn-list">
                                     <a href="{{ route('admin.status.services.show', $service) }}" class="btn btn-sm">View</a>
                                     @can('status.services.update')
                                         <a href="{{ route('admin.status.services.edit', $service) }}" class="btn btn-sm">Edit</a>

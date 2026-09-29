@@ -11,7 +11,7 @@
                     <div class="col-md-4">
                         <input type="text" class="form-control" name="action" value="{{ $filter }}" placeholder="Filter by action…" />
                     </div>
-                    <div class="col-md-2 d-flex gap-2">
+                    <div class="col-md-3 d-flex gap-2">
                         <button type="submit" class="btn btn-primary">Filter</button>
                         <a href="{{ route('admin.status.audit-logs') }}" class="btn">Reset</a>
                     </div>
@@ -25,7 +25,7 @@
             <table class="table table-vcenter card-table">
                 <thead>
                     <tr>
-                        <th>Time</th>
+                        <th class="w-1">Time</th>
                         <th>User</th>
                         <th>Action</th>
                         <th>Subject</th>

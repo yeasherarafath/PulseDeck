@@ -33,12 +33,12 @@
                 <div class="list-group list-group-flush">
                     @foreach ($incidents as $incident)
                         <a href="{{ route('status.incidents.show', $incident['slug']) }}" class="list-group-item list-group-item-action">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
+                            <div class="d-flex justify-content-between align-items-center gap-2">
+                                <div class="svc-row-name">
                                     <strong>{{ $incident['title'] }}</strong>
                                     <div class="text-secondary small">{{ $incident['service_name'] ?? 'Multiple services' }} &middot; started {{ $incident['started_human'] }}</div>
                                 </div>
-                                <x-status-badge :status="$incident['status']" />
+                                <span class="svc-badge"><x-status-badge :status="$incident['status']" /></span>
                             </div>
                         </a>
                     @endforeach
@@ -78,8 +78,8 @@
                 <div class="list-group list-group-flush">
                     @foreach ($group['services'] as $service)
                         <a href="{{ route('status.services.show', $service['slug']) }}" class="list-group-item list-group-item-action" data-service-row="{{ $service['slug'] }}">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
+                            <div class="d-flex justify-content-between align-items-center gap-2">
+                                <div class="svc-row-name">
                                     <strong>{{ $service['name'] }}</strong>
                                     <div class="text-secondary small svc-response">
                                         {{ $service['last_checked_human'] ? 'Checked '.$service['last_checked_human'] : 'Not checked yet' }}

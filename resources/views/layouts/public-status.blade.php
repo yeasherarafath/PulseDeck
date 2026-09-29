@@ -35,11 +35,8 @@
                     <x-app-brand :href="route('status.index')" />
                 </h1>
                 <div class="navbar-nav flex-row order-md-last ms-auto">
-                    <div class="nav-item me-2">
-                        <x-theme-toggle />
-                    </div>
                     <div class="nav-item">
-                        <span class="btn btn-outline-primary disabled">Subscribe (soon)</span>
+                        <x-theme-toggle />
                     </div>
                 </div>
             </div>

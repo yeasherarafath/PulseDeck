@@ -44,7 +44,7 @@
                             <td>{{ $channel->rules_count }}</td>
                             <td>{{ $channel->is_active ? 'Yes' : 'No' }}</td>
                             <td class="text-end">
-                                <div class="btn-list flex-nowrap">
+                                <div class="btn-list">
                                     <button type="button" class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#channel-{{ $channel->id }}">Edit</button>
                                     <form method="POST" action="{{ route('admin.status.notifications.channels.destroy', $channel) }}" class="d-inline" onsubmit="return confirm('Delete this channel?')">
                                         @csrf

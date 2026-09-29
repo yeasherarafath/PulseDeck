@@ -54,12 +54,12 @@
         <div class="list-group list-group-flush">
             @forelse ($incidents as $incident)
                 <a href="{{ route('status.incidents.show', $incident['slug']) }}" class="list-group-item list-group-item-action">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
+                    <div class="d-flex justify-content-between align-items-center gap-2">
+                        <div class="svc-row-name">
                             <strong>{{ $incident['title'] }}</strong>
                             <div class="text-secondary small">{{ $incident['started'] }}{{ $incident['resolved'] ? ' – resolved '.$incident['resolved'] : '' }}</div>
                         </div>
-                        <x-status-badge :status="$incident['status']" />
+                        <span class="svc-badge"><x-status-badge :status="$incident['status']" /></span>
                     </div>
                 </a>
             @empty

@@ -39,7 +39,7 @@
                             <td>{{ $group->sort_order }}</td>
                             <td>{{ $group->is_active ? 'Yes' : 'No' }}</td>
                             <td class="text-end">
-                                <div class="btn-list flex-nowrap">
+                                <div class="btn-list">
                                     @can('status.services.update')
                                         <button type="button" class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#group-{{ $group->id }}">Edit</button>
                                     @endcan

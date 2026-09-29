@@ -81,7 +81,7 @@
                         <thead>
                             <tr>
                                 <th>Time</th>
-                                <th>Result</th>
+                                <th class="w-1">Result</th>
                                 <th>HTTP</th>
                                 <th>Response</th>
                                 <th>Error / assertions</th>
@@ -91,7 +91,7 @@
                             @forelse ($checks as $check)
                                 <tr>
                                     <td class="text-nowrap">{{ $check->checked_at->format('M j, H:i:s') }}</td>
-                                    <td><x-status-badge :status="$check->status" /></td>
+                                    <td class="text-nowrap"><x-status-badge :status="$check->status" /></td>
                                     <td>{{ $check->http_status ?? '—' }}</td>
                                     <td>{{ $check->response_time !== null ? $check->response_time.' ms' : '—' }}</td>
                                     <td>

@@ -70,7 +70,7 @@
                                         <div>{{ $incident->title }}</div>
                                         <div class="text-secondary small">{{ $incident->service?->name ?? '—' }} &middot; {{ $incident->started_at->diffForHumans() }}</div>
                                     </td>
-                                    <td class="text-end"><x-status-badge :status="$incident->status" /></td>
+                                    <td class="text-nowrap text-end"><x-status-badge :status="$incident->status" /></td>
                                 </tr>
                             @empty
                                 <tr><td class="text-secondary">No active incidents.</td></tr>
@@ -92,7 +92,7 @@
                             @forelse ($problems as $service)
                                 <tr>
                                     <td><a href="{{ route('admin.status.services.show', $service) }}">{{ $service->name }}</a></td>
-                                    <td class="text-end"><x-status-badge :status="$service->current_status" /></td>
+                                    <td class="text-nowrap text-end"><x-status-badge :status="$service->current_status" /></td>
                                 </tr>
                             @empty
                                 <tr><td class="text-secondary">Everything looks good.</td></tr>
@@ -117,7 +117,7 @@
                                         <div>{{ $check->service?->name ?? '—' }}</div>
                                         <div class="text-secondary small">{{ $check->checked_at->diffForHumans() }} &middot; {{ $check->http_status ?? 'no response' }}{{ $check->response_time !== null ? ' · '.$check->response_time.' ms' : '' }}</div>
                                     </td>
-                                    <td class="text-end"><x-status-badge :status="$check->status" /></td>
+                                    <td class="text-nowrap text-end"><x-status-badge :status="$check->status" /></td>
                                 </tr>
                             @empty
                                 <tr><td class="text-secondary">No checks recorded yet.</td></tr>

@@ -44,7 +44,7 @@
                         <th>Event</th>
                         <th>Service</th>
                         <th>Recipients</th>
-                        <th>Outcome</th>
+                        <th class="w-1">Outcome</th>
                         <th>Error</th>
                     </tr>
                 </thead>
@@ -56,7 +56,7 @@
                             <td>{{ \App\Enums\Status\NotificationEvent::tryFrom($delivery->event)?->label() ?? $delivery->event }}</td>
                             <td>{{ $delivery->service?->name ?? '—' }}</td>
                             <td>{{ $delivery->recipient_count }}</td>
-                            <td>
+                            <td class="text-nowrap">
                                 @if ($delivery->status === 'sent')
                                     <span class="badge bg-green-lt">Sent</span>
                                 @elseif ($delivery->status === 'failed')

@@ -46,7 +46,7 @@
                         <thead>
                             <tr>
                                 <th>Service</th>
-                                <th>Status</th>
+                                <th class="w-1">Status</th>
                                 <th>Last check</th>
                                 <th>Next check</th>
                                 <th>Response</th>
@@ -58,9 +58,9 @@
                                 @php($latest = $service->checks->first())
                                 <tr>
                                     <td><a href="{{ route('admin.status.services.show', $service) }}">{{ $service->name }}</a></td>
-                                    <td><x-status-badge :status="$service->current_status" /></td>
-                                    <td>{{ $service->last_checked_at?->diffForHumans() ?? 'never' }}</td>
-                                    <td>{{ $service->next_check_at?->diffForHumans() ?? '—' }}</td>
+                                    <td class="text-nowrap"><x-status-badge :status="$service->current_status" /></td>
+                                    <td class="text-nowrap">{{ $service->last_checked_at?->diffForHumans() ?? 'never' }}</td>
+                                    <td class="text-nowrap">{{ $service->next_check_at?->diffForHumans() ?? '—' }}</td>
                                     <td>{{ $latest?->response_time !== null ? $latest->response_time.' ms' : '—' }}</td>
                                     <td class="text-secondary">{{ \Illuminate\Support\Str::limit($latest?->error_message ?? '', 80) }}</td>
                                 </tr>

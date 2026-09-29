@@ -38,8 +38,8 @@
                     <tr>
                         <th>Incident</th>
                         <th>Service</th>
-                        <th>Status</th>
-                        <th>Impact</th>
+                        <th class="w-1">Status</th>
+                        <th class="w-1">Impact</th>
                         <th>Started</th>
                         <th class="w-1"></th>
                     </tr>
@@ -49,9 +49,9 @@
                         <tr>
                             <td><a href="{{ route('admin.status.incidents.show', $incident) }}">{{ $incident->title }}</a></td>
                             <td>{{ $incident->service?->name ?? '—' }}</td>
-                            <td><x-status-badge :status="$incident->status" /></td>
-                            <td><x-status-badge :status="$incident->impact" /></td>
-                            <td>{{ $incident->started_at->diffForHumans() }}</td>
+                            <td class="text-nowrap"><x-status-badge :status="$incident->status" /></td>
+                            <td class="text-nowrap"><x-status-badge :status="$incident->impact" /></td>
+                            <td class="text-nowrap">{{ $incident->started_at->diffForHumans() }}</td>
                             <td class="text-end">
                                 @can('status.incidents.update')
                                     <a href="{{ route('admin.status.incidents.edit', $incident) }}" class="btn btn-sm">Edit</a>
