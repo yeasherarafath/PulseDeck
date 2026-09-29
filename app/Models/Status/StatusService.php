@@ -140,6 +140,11 @@ class StatusService extends Model
         });
     }
 
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     /** @return BelongsTo<StatusServiceGroup, $this> */
     public function group(): BelongsTo
     {

@@ -22,4 +22,9 @@ document.addEventListener('DOMContentLoaded', () => {
             new TomSelect(el, {});
         }
     });
+
+    // Request-builder form (code-split: only loaded where needed).
+    if (document.querySelector('[data-service-form]')) {
+        import('./service-form.js');
+    }
 });
