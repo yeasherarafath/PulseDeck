@@ -1,8 +1,8 @@
 # PulseDeck — Feature Catalog
 
 > The complete list of what PulseDeck does today. For setup instructions see
-> [`README.md`](README.md). For the original build spec see [`final-plan.md`](final-plan.md);
-> for the notification deep-dive see [`notification-plan.md`](notification-plan.md).
+> [`README.md`](README.md). For the original build spec see [`final-plan.md`](plans/final-plan.md);
+> for the notification deep-dive see [`notification-plan.md`](plans/notification-plan.md).
 
 ## 1. Public status page (your visitors see this)
 

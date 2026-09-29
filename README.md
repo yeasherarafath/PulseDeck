@@ -267,8 +267,8 @@ vendor/bin/pint --dirty     # code style — run before finalizing PHP changes
 ```
 
 **Docs:** [`features.md`](features.md) capability catalog ·
-[`final-plan.md`](final-plan.md) build spec · [`notification-plan.md`](notification-plan.md)
-notification deep-dive · [`plan.md`](plan.md) original brainstorm.
+[`final-plan.md`](plans/final-plan.md) build spec · [`notification-plan.md`](plans/notification-plan.md)
+notification deep-dive · [`plan.md`](plans/plan.md) original brainstorm.
 
 ## License
 
