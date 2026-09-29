@@ -134,7 +134,7 @@
             </div>
         </aside>
         <div class="page-wrapper">
-            <header class="navbar navbar-expand-md d-none d-lg-flex d-print-none">
+            <header class="navbar navbar-expand-md sticky-top d-none d-lg-flex d-print-none">
                 <div class="container-xl">
                     <div class="navbar-nav flex-row order-md-last ms-auto">
                         <div class="nav-item me-2">
