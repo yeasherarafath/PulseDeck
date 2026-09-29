@@ -58,7 +58,8 @@ class SettingsController extends Controller
         $rules['settings.webhook_default_url'][] = 'url';
         $rules['settings.mail_from_address'][] = 'email';
         $rules['settings.contact_email'][] = 'email';
-        $rules['settings.mail_port'][] = 'integer|min:1|max:65535';
+        $rules['settings.mail_port'][] = 'min:1';
+        $rules['settings.mail_port'][] = 'max:65535';
         $rules['settings.theme_default'][] = 'in:light,dark';
         $rules['settings.mail_mailer'][] = 'in:smtp,sendmail,log';
         $rules['settings.mail_encryption'][] = 'in:tls,ssl,none';

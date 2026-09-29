@@ -49,7 +49,7 @@
                     <ul class="steps steps-vertical">
                         @foreach ($incident->updates as $update)
                             <li class="step-item">
-                                <div class="h4 m-0">{{ $update->status->label }}</div>
+                                <div class="h4 m-0">{{ $update->status->label() }}</div>
                                 <div class="text-secondary">{{ $update->created_at->format('M j, Y H:i') }} — {{ $update->message }}</div>
                             </li>
                         @endforeach
