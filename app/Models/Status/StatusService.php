@@ -189,9 +189,10 @@ class StatusService extends Model
         return $query->active()->where('next_check_at', '<=', now());
     }
 
-    public function recordCheckResult(CheckResultStatus $result, int $responseTimeMs): void
+    public function recordCheckResult(CheckResultStatus $result, ServiceStatus $status): void
     {
         $this->forceFill([
+            'current_status' => $status,
             'last_checked_at' => now(),
             'next_check_at' => now()->addSeconds($this->check_interval),
             'last_success_at' => $result === CheckResultStatus::Operational || $result === CheckResultStatus::Degraded
