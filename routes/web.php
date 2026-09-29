@@ -18,7 +18,8 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Status\StatusPageController;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/status');
+// Public home is served directly (subdomain-ready): no redirect to /status.
+Route::get('/', [StatusPageController::class, 'index'])->name('home');
 
 // Core session auth (no starter-kit packages).
 Route::middleware('guest')->group(function () {

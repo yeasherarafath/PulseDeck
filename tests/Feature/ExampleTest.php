@@ -10,11 +10,11 @@ class ExampleTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * Root redirects to the public status page, which renders successfully.
+     * Root serves the public status home directly (subdomain-ready, no redirect).
      */
     public function test_the_application_returns_a_successful_response(): void
     {
-        $this->get('/')->assertRedirect('/status');
+        $this->get('/')->assertOk();
 
         $this->get('/status')->assertOk();
     }
