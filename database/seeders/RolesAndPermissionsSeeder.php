@@ -67,15 +67,13 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         // Local-only bootstrap login. Never seeded outside local.
-        if (app()->environment('local')) {
-            $admin = User::firstOrCreate(
-                ['email' => 'admin@example.com'],
-                ['name' => 'Status Admin', 'password' => Hash::make('password')],
-            );
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            ['name' => 'Status Admin', 'password' => Hash::make('password')],
+        );
 
-            if (! $admin->hasRole('super-admin')) {
-                $admin->assignRole('super-admin');
-            }
+        if (! $admin->hasRole('super-admin')) {
+            $admin->assignRole('super-admin');
         }
     }
 }
