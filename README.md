@@ -43,6 +43,34 @@ page, uptime percentages, charts, and alerts all flow from those results.
 
 ---
 
+## How it compares
+
+> Researched September 2026. SaaS products change fast — treat this as a
+> snapshot, not a contract. Legend: ✓ yes · ~ partial / planned · ✗ no · — n/a.
+
+| Capability | PulseDeck (this project) | Atlassian Statuspage | Better Stack | Uptime Kuma | Cachet |
+|---|---|---|---|---|---|
+| Price | Free, self-hosted | Free plan + paid up to $1,499/mo | Free plan + paid per responder | Free, self-hosted | Free, self-hosted |
+| Built-in monitoring | ✓ | ✗ relies on external tools | ✓ | ✓ | ~ basic only |
+| Monitor types beyond HTTP(S) | ✗ HTTP-only | — | ✓ TCP/Ping/DNS/SSL/… | ✓ 20+ types | ✗ |
+| Push / heartbeat (cron-job) monitoring | ✗ | ✗ | ✓ | ✓ | ✗ |
+| Fastest check interval | 1 min | — | 30 s | 20 s | Manual |
+| Rich assertions (JSON / headers / body / time) | ✓ | — | ✓ | ~ keyword / JSON-query | ✗ |
+| Auto open + resolve incidents | ✓ | Via integrations | ✓ | ✗ | ✗ |
+| Incident templates | ✗ | ✓ | ~ AI drafts | ✗ | ✗ |
+| Public incident timeline | ✓ | ✓ | ✓ | ~ state only | ✓ |
+| Maintenance windows | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Email subscriber notifications | ✓ double opt-in | ✓ | ✓ | ✗ admin alerts only | ✓ basic |
+| SMS / voice alerts | ✗ | ✓ | ✓ unlimited | ~ via providers | ✗ |
+| Slack / Discord / Telegram alerts | ~ planned | ✓ | ✓ | ✓ 90+ providers | ~ |
+| Private / internal pages | ✗ | ✓ | ✓ | ✓ | ✗ |
+| On-call schedules + escalations | ✗ | Via JSM / Opsgenie | ✓ built-in | ✗ | ✗ |
+
+PulseDeck's pitch in one line: **Statuspage-style communication + real built-in
+HTTP monitoring, free and self-hosted** — without the per-subscriber pricing or
+the "monitoring not included" gap. See [`features.md`](features.md) for the full
+capability catalog and [`todo.md`](todo.md) for what's planned next.
+
 ## Requirements
 
 | Need | Minimum | Notes |

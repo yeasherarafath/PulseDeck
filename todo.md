@@ -13,11 +13,47 @@
 
 ## Next
 
-- [ ] SSL-expiry / TCP / DNS / Ping monitors behind the `MonitorChecker` interface.
+### Monitoring
+
+- [ ] SSL-expiry / TCP / DNS / Ping monitors behind the `MonitorChecker` interface
+      (no interface in code yet — HTTP-only today).
+- [ ] Push / heartbeat monitors (dead-man-switch for cron jobs & backups).
+- [ ] SMTP / WebSocket / gRPC / DB-connect checks.
+- [ ] Later: multi-region checks, Playwright / real-browser synthetics.
+
+### Notifications & subscribers
+
 - [ ] Telegram / Discord / Slack notification channels.
+- [ ] SMS / voice-call alerting (e.g. Twilio) for wake-me-up outages.
+- [ ] Per-service subscriptions + RSS / iCalendar feeds.
+
+### Public page & incident communication
+
+- [ ] Incident templates (canned investigating → resolved texts).
+- [ ] Public incident archive + postmortem field on resolved incidents.
+- [ ] Announcements (non-incident posts).
+- [ ] Maintenance reminders + recurring windows.
+- [ ] Backdated incident creation.
+- [ ] Custom CSS / custom domain / white-label; status embed widget.
+- [ ] Third-party component status (AWS / Stripe / …).
+
+### API & automation
+
+- [ ] Write API (incidents, components, maintenance) + personal API tokens.
+- [ ] Prometheus metrics endpoint; backup/restore UI; Statuspage/Cachet import.
+
+### Access, enterprise & trust
+
 - [ ] SLA reports + multi-page / multi-tenant support (see `features.md` §10).
+- [ ] Private status pages (password / SSO / IP allowlist).
+- [ ] 2FA for admins.
+- [ ] Public-page i18n (no `lang/` directory yet).
+- [ ] On-call schedules + escalation chains (later — a second product, after the above).
 - [ ] Per-service cron timezone override (currently uses Settings → General timezone).
 - [ ] Bulk actions on Services (pause/resume, group move).
+- [ ] Version tagging once people start using it — SemVer git tags (`v1.0.0`,
+      `v1.1.0`, …), keep `APP_VERSION` in sync, add `CHANGELOG.md`, and publish
+      GitHub Releases so deployments are traceable.
 
 ## Notes
 
