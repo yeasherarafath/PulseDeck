@@ -3,6 +3,16 @@
 @section('page-pretitle', 'Incidents')
 @section('page-title', 'Edit: '.$incident->title)
 
+@section('page-actions')
+    @can('status.incidents.delete')
+        <form method="POST" action="{{ route('admin.status.incidents.destroy', $incident) }}" class="d-inline" onsubmit="return confirm('Delete this incident and its timeline?')">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+    @endcan
+@endsection
+
 @section('content')
     <div class="card">
         <form method="POST" action="{{ route('admin.status.incidents.update', $incident) }}">
