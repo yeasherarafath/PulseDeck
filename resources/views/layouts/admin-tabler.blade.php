@@ -307,6 +307,19 @@
                 <div class="container-xl">
                     <div class="navbar-nav flex-row order-md-last ms-auto">
                         <div class="nav-item me-2">
+                            <a href="{{ route('home') }}" target="_blank" rel="noopener" class="btn btn-icon"
+                                title="View public status page" aria-label="View public status page">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24"
+                                    viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6" />
+                                    <path d="M11 13l9 -9" />
+                                    <path d="M15 4h6v6" />
+                                </svg>
+                            </a>
+                        </div>
+                        <div class="nav-item me-2">
                             <x-theme-toggle />
                         </div>
                         @auth
