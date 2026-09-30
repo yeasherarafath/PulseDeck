@@ -232,7 +232,7 @@ on every admin route.
 | Login page loops / 419 | `APP_URL` must match the URL you visit; clear cookies |
 | Logos don’t show | Run `php artisan storage:link` |
 | No emails arrive | Settings → Mail: verify SMTP, use Test email; check Mailpit (`localhost:1025`) in dev; check Deliveries page for `failed` rows (errors logged without secrets) |
-| Webhook rejected as private/reserved address | Webhook targets pass the SSRF guard; set `STATUS_WEBHOOK_ALLOW_PRIVATE=true` in `.env` only if you must reach internal hosts |
+| Webhook rejected as private/reserved address | Webhook targets pass the SSRF guard; set `STATUS_WEBHOOK_ALLOW_PRIVATE=true` in `.env` (see `.env.example`) only if you must reach internal hosts |
 | A service flaps up/down | Raise its “min failures before down” (per-service or global) |
 | Public page looks outdated | Cached up to 30 s; any change to a service, group, incident, maintenance window or setting clears it immediately, so only "checked x ago" can lag |
 | A public service is missing from the page | Services without a group are listed under **Other services**; services set to *not public* are never shown |
