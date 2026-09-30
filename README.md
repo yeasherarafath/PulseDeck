@@ -325,6 +325,10 @@ vendor/bin/pint --dirty     # code style — run before finalizing PHP changes
 [`final-plan.md`](plans/final-plan.md) build spec · [`plans/browser/full-test-plan4.md`](plans/browser/full-test-plan4.md) page-by-page browser test plan with results · [`notification-plan.md`](plans/notification-plan.md)
 notification deep-dive · [`plan.md`](plans/plan.md) original brainstorm.
 
+## Contributing
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup, workflow, code style, and tests.
+
 ## License
 
 Built on the [Laravel framework](https://laravel.com) (MIT). Application code follows
