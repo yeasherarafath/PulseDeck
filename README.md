@@ -55,6 +55,7 @@ page, uptime percentages, charts, and alerts all flow from those results.
 | Monitor types beyond HTTP(S) | ✗ HTTP-only | — | ✓ TCP/Ping/DNS/SSL/… | ✓ 20+ types | ✗ |
 | Push / heartbeat (cron-job) monitoring | ✗ | ✗ | ✓ | ✓ | ✗ |
 | Fastest check interval | 1 min | — | 30 s | 20 s | Manual |
+| Flexible schedules (interval + cron expressions) | ✓ both | — | ~ intervals only | ~ intervals only | ✗ |
 | Rich assertions (JSON / headers / body / time) | ✓ | — | ✓ | ~ keyword / JSON-query | ✗ |
 | Auto open + resolve incidents | ✓ | Via integrations | ✓ | ✗ | ✗ |
 | Incident templates | ✗ | ✓ | ~ AI drafts | ✗ | ✗ |
