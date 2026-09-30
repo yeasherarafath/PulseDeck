@@ -101,14 +101,7 @@ class CheckService implements ShouldQueue
         } catch (Throwable $exception) {
             // Invalid stored configuration: visible failed check, not a crash.
             $definition = new StatusRequestDefinition(method: $service->method, url: $service->url);
-            $outcome = CheckOutcome::transportError(
-                $calculator->errorTypeFor(
-                    CheckOutcome::transportError(CheckErrorType::Unknown, ''),
-                    AssertionResult::passed()
-                ) ?? CheckErrorType::Unknown,
-                $exception->getMessage(),
-                $service->url,
-            );
+            $outcome = CheckOutcome::transportError(CheckErrorType::Unknown, $exception->getMessage(), $service->url);
             $assertionResult = AssertionResult::passed();
         }
 

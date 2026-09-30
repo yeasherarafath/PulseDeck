@@ -48,6 +48,8 @@ class StatusPageController extends Controller
     {
         $this->ensurePublicEnabled();
 
+        abort_unless($incident->isVisibleToPublic(), 404);
+
         return view('status.incident', [
             'incident' => $incident->load(['service', 'updates']),
         ]);
@@ -130,13 +132,24 @@ class StatusPageController extends Controller
             ->with('status', 'Subscription confirmed. You will receive incident emails.');
     }
 
+    /**
+     * GET only renders a confirmation: mail scanners and link prefetchers
+     * must never unsubscribe anyone by merely following the link.
+     */
+    public function confirmUnsubscribe(string $token): View
+    {
+        abort_unless(StatusSubscriber::where('unsubscribe_token', $token)->exists(), 404);
+
+        return view('status.unsubscribe', ['token' => $token]);
+    }
+
     public function unsubscribe(string $token): RedirectResponse
     {
         // Persistent token: works long after the one-time verify link is consumed.
-        StatusSubscriber::where('unsubscribe_token', $token)->delete();
+        $deleted = StatusSubscriber::where('unsubscribe_token', $token)->delete();
 
         return redirect()->route('status.index')
-            ->with('status', 'You have been unsubscribed.');
+            ->with('status', $deleted > 0 ? 'You have been unsubscribed.' : 'This unsubscribe link is no longer valid.');
     }
 
     public function badge(): Response

@@ -37,7 +37,11 @@ class SubscriptionTest extends TestCase
         $this->get("/status/verify/{$verifyToken}")->assertNotFound();
 
         // Persistent token still unsubscribes exactly that row.
-        $this->get("/status/unsubscribe/{$unsubscribeToken}")->assertRedirect('/status');
+        // GET only confirms (scanners/prefetch must not unsubscribe).
+        $this->get("/status/unsubscribe/{$unsubscribeToken}")->assertOk();
+        $this->assertEquals(1, StatusSubscriber::where('email', 'fan@example.com')->count());
+
+        $this->post("/status/unsubscribe/{$unsubscribeToken}")->assertRedirect('/status');
 
         $this->assertEquals(0, StatusSubscriber::where('email', 'fan@example.com')->count());
     }

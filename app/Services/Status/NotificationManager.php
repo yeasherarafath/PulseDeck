@@ -69,7 +69,7 @@ class NotificationManager
 
         $webhookAllowed = (bool) StatusSetting::get('webhook_alerts_enabled', true);
 
-        $subscriberTokens = $this->subscriberTokens($event);
+        $subscriberTokens = $this->subscriberTokens($event, $service);
 
         foreach ($channels as $channel) {
             if ($channel->type === NotificationChannelType::Mail && ! $mailAllowed) {
@@ -132,8 +132,13 @@ class NotificationManager
      *
      * @return array<string, string>
      */
-    private function subscriberTokens(NotificationEvent $event): array
+    private function subscriberTokens(NotificationEvent $event, ?StatusService $service): array
     {
+        // Public subscribers must never hear about private services.
+        if ($service && ! $service->is_public) {
+            return [];
+        }
+
         if (! in_array($event, self::SUBSCRIBER_EVENTS, true)) {
             return [];
         }

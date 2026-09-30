@@ -82,7 +82,7 @@ class StatusApiController extends Controller
         $this->ensureEnabled();
 
         return $this->ok(
-            StatusIncident::with('service')->latest('started_at')->limit(25)
+            StatusIncident::visibleToPublic()->with('service')->latest('started_at')->limit(25)
                 ->get()
                 ->map(fn ($incident) => [
                     'title' => $incident->title,

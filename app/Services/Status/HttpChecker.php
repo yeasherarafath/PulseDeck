@@ -39,13 +39,13 @@ class HttpChecker
 
         while (true) {
             try {
-                $this->guard->assertSafeUrl($url);
+                $pinned = $this->guard->assertSafeUrl($url);
             } catch (SsrfBlockedException $exception) {
                 return CheckOutcome::transportError(CheckErrorType::SsrfBlocked, $exception->getMessage(), $url);
             }
 
             try {
-                $outcome = $this->attempt($definition, $url, $redirects);
+                $outcome = $this->attempt($definition, $url, $redirects, $pinned);
             } catch (Throwable $exception) {
                 return $this->analyzer->fromThrowable($exception, $url);
             }
@@ -77,7 +77,11 @@ class HttpChecker
         }
     }
 
-    private function attempt(StatusRequestDefinition $definition, string $url, int $redirects): CheckOutcome
+    /**
+     * @param  list<string>  $pinned  Addresses validated by the SSRF guard; the connection
+     *                                is pinned to them so DNS cannot change between check and connect.
+     */
+    private function attempt(StatusRequestDefinition $definition, string $url, int $redirects, array $pinned = []): CheckOutcome
     {
         $connectMs = null;
         $totalMs = null;
@@ -95,6 +99,10 @@ class HttpChecker
                     $totalMs = isset($handler['total_time']) ? (int) round($handler['total_time'] * 1000) : null;
                 },
             ]);
+
+        if ($pinned !== []) {
+            $request->withOptions(SsrfGuard::pinOptions($url, $pinned));
+        }
 
         if ($definition->httpVersion !== HttpVersion::Auto) {
             $request->withOptions(['version' => (float) $definition->httpVersion->value]);

@@ -32,7 +32,7 @@
 - **Auto recovery** — first good check after an outage flips the service back to Operational automatically and fires a single recovery email.
 - **Maintenance-aware** — services under a maintenance window report “Scheduled Maintenance”, not false alarms, and uptime stats stay fair.
 - **Retried safely** — jobs retry with backoff; concurrent runs are lock-guarded; invalid configs produce a visible failed check instead of crashing the worker.
-- **SSRF protection** — private/internal URLs are blocked (including sneaky redirects), schemes allow-listed, response sizes capped.
+- **SSRF protection** — private/internal URLs are blocked (including sneaky redirects), connections are pinned to the validated IP (no DNS rebinding), schemes allow-listed, response sizes capped. Webhook targets use the same guard.
 - **Engine health** — the Monitoring page shows queued jobs, failed jobs, and a worker heartbeat (“Running” vs “Stale”).
 
 ## 3. Services & request builder (admin)
@@ -66,7 +66,7 @@
 - **Events** — service failed, service degraded, service recovered, incident created/updated/resolved, maintenance started/ended.
 - **Global + per-event + per-service switches** — master toggles in Settings, per-event flags, and per-service failure/recovery flags.
 - **Verified subscribers** — double opt-in; only verified addresses ever receive mail; unverified ones are excluded automatically.
-- **Per-recipient unsubscribe** — every email carries its own one-click unsubscribe link.
+- **Per-recipient unsubscribe** — every email carries its own unsubscribe link (opens a confirmation page, so mail scanners cannot unsubscribe anyone). Private services never email public subscribers.
 - **Delivery log** — every send is recorded (sent / failed / skipped, recipient count, error without secrets) on the Deliveries page.
 - **One recovery, one email** — an auto-resolved incident sends its resolution mail instead of a duplicate service-recovered mail.
 - **Test buttons** — “Send test email” and “Send test webhook” right in Settings.

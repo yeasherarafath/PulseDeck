@@ -6,6 +6,7 @@ use App\Enums\Status\NotificationChannelType;
 use App\Http\Controllers\Controller;
 use App\Models\Status\StatusAuditLog;
 use App\Models\Status\StatusNotificationChannel;
+use App\Rules\AllowedMonitorUrl;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -32,7 +33,7 @@ class NotificationChannelController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', 'in:mail,webhook'],
             'recipients' => ['nullable', 'string'],
-            'url' => ['nullable', 'url', 'max:2048'],
+            'url' => $this->urlRules(),
             'secret' => ['nullable', 'string', 'max:4096'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
@@ -56,7 +57,7 @@ class NotificationChannelController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'recipients' => ['nullable', 'string'],
-            'url' => ['nullable', 'url', 'max:2048'],
+            'url' => $this->urlRules(),
             'secret' => ['nullable', 'string', 'max:4096'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
@@ -119,5 +120,16 @@ class NotificationChannelController extends Controller
             fn ($email) => trim($email),
             preg_split('/[,\n;]+/', $raw) ?: []
         ), fn ($email) => filter_var($email, FILTER_VALIDATE_EMAIL)));
+    }
+
+    /**
+     * @return list<mixed>
+     */
+    private function urlRules(): array
+    {
+        return array_values(array_filter([
+            'nullable', 'url', 'max:2048',
+            config('status.webhook_allow_private') ? null : new AllowedMonitorUrl,
+        ]));
     }
 }

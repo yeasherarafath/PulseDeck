@@ -41,7 +41,8 @@ Route::prefix('status')->name('status.')->group(function () {
     Route::get('incidents/{incident:slug}', [StatusPageController::class, 'showIncident'])->name('incidents.show');
     Route::post('subscribe', [StatusPageController::class, 'subscribe'])->name('subscribe')->middleware('throttle:10,1');
     Route::get('verify/{token}', [StatusPageController::class, 'verify'])->name('verify');
-    Route::get('unsubscribe/{token}', [StatusPageController::class, 'unsubscribe'])->name('unsubscribe');
+    Route::get('unsubscribe/{token}', [StatusPageController::class, 'confirmUnsubscribe'])->name('unsubscribe');
+    Route::post('unsubscribe/{token}', [StatusPageController::class, 'unsubscribe'])->name('unsubscribe.confirm')->middleware('throttle:10,1');
 });
 
 Route::prefix(trim((string) config('status.admin_prefix', 'admin'), '/').'/status')->name('admin.status.')->middleware(['auth', 'permission:status.view'])->group(function () {

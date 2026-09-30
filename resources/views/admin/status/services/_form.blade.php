@@ -83,7 +83,7 @@
                             <label class="form-label required" for="f-interval">Check interval</label>
                             <select class="form-select" id="f-interval" name="check_interval">
                                 @foreach (CheckInterval::cases() as $interval)
-                                    <option value="{{ $interval->value }}" @selected((int) old('check_interval', $service?->check_interval ?? setting('default_check_interval', 300)) === $interval->value)>{{ $interval->label() }}</option>
+                                    <option value="{{ $interval->value }}" @selected((int) old('check_interval', $service?->check_interval ?? (CheckInterval::tryFrom((int) setting('default_check_interval', 300))?->value ?? 300)) === $interval->value)>{{ $interval->label() }}</option>
                                 @endforeach
                             </select>
                         </div>

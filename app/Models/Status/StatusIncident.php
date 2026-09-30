@@ -66,6 +66,23 @@ class StatusIncident extends Model
         return $query->whereNot('status', IncidentStatus::Resolved);
     }
 
+    /**
+     * Incidents safe to show publicly: multi-service ones, or those tied to a public service.
+     *
+     * @param  Builder<$this>  $query
+     */
+    public function scopeVisibleToPublic(Builder $query): Builder
+    {
+        return $query->where(fn (Builder $q) => $q
+            ->whereNull('service_id')
+            ->orWhereHas('service', fn ($service) => $service->where('is_public', true)));
+    }
+
+    public function isVisibleToPublic(): bool
+    {
+        return $this->service_id === null || (bool) $this->service?->is_public;
+    }
+
     public function resolve(): void
     {
         $this->forceFill([

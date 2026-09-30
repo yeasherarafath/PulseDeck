@@ -135,7 +135,7 @@ class PublicStatusService
             'server_time' => setting_time(now(), 'M j, Y H:i').' '.setting_timezone(),
             'server_tz' => setting_timezone(),
             'groups' => $groupRows,
-            'incidents' => StatusIncident::active()->with('service')->latest('started_at')->limit(10)->get()
+            'incidents' => StatusIncident::active()->visibleToPublic()->with('service')->latest('started_at')->limit(10)->get()
                 ->map(fn ($incident) => $this->incidentRow($incident))->all(),
             'maintenances' => StatusMaintenance::whereIn('status', [MaintenanceStatus::Scheduled, MaintenanceStatus::Active])
                 ->where('ends_at', '>=', now())

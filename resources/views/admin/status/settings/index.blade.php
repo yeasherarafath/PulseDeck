@@ -55,6 +55,10 @@
                                         </div>
                                     @elseif ($setting->is_encrypted)
                                         <input type="password" class="form-control" id="set-{{ $setting->key }}" name="settings[{{ $setting->key }}]" value="" placeholder="Saved value hidden — leave blank to keep" autocomplete="new-password" />
+                                        <label class="form-check mt-1">
+                                            <input type="checkbox" class="form-check-input" name="clear_secrets[{{ $setting->key }}]" value="1" />
+                                            <span class="form-check-label">Clear stored value</span>
+                                        </label>
                                         @if ($setting->description)<div class="form-hint">{{ $setting->description }}</div>@endif
                                     @elseif (in_array($setting->key, ['theme_default'], true))
                                         <select class="form-select" id="set-{{ $setting->key }}" name="settings[{{ $setting->key }}]">

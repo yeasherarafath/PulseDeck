@@ -55,7 +55,7 @@ class DispatchDueChecks extends Command
         StatusService::active()
             ->where('current_status', '!=', ServiceStatus::Unknown->value)
             ->whereNotNull('last_checked_at')
-            ->chunk(100, function ($services) use ($multiplier, &$stale): void {
+            ->chunkById(100, function ($services) use ($multiplier, &$stale): void {
                 foreach ($services as $service) {
                     $grace = max(60, $service->check_interval) * $multiplier;
 

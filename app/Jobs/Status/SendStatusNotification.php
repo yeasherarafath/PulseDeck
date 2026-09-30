@@ -9,11 +9,13 @@ use App\Models\Status\StatusNotificationChannel;
 use App\Models\Status\StatusNotificationDelivery;
 use App\Models\Status\StatusService;
 use App\Models\Status\StatusSetting;
+use App\Services\Status\SsrfGuard;
 use App\Services\Status\StatusMailConfig;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -92,23 +94,38 @@ class SendStatusNotification implements ShouldQueue
         $event = NotificationEvent::tryFrom($this->event);
         $sent = 0;
 
+        // A retry re-runs the whole job: remember who was already mailed so
+        // a mid-list failure never resends to earlier recipients.
+        $cacheKey = 'status:notification-sent:'.($this->job?->uuid() ?? spl_object_id($this));
+        $done = Cache::get($cacheKey, []);
+
         // Subscribers get individual mails with their own unsubscribe link;
         // plain channel recipients share one bulk mail without a footer.
-        $bulk = array_diff($this->to, array_keys($this->unsubscribeTokens));
+        $bulk = array_values(array_diff($this->to, array_keys($this->unsubscribeTokens)));
 
-        if ($bulk !== []) {
-            Mail::to(array_values($bulk))->send($this->mailable($event, null));
-            $sent += count($bulk);
+        if ($bulk !== [] && ! in_array('*bulk', $done, true)) {
+            Mail::to($bulk)->send($this->mailable($event, null));
+            $done[] = '*bulk';
+            Cache::put($cacheKey, $done, now()->addDay());
         }
+
+        $sent += count($bulk);
 
         foreach ($this->unsubscribeTokens as $email => $token) {
             if (! in_array($email, $this->to, true)) {
                 continue;
             }
 
-            Mail::to($email)->send($this->mailable($event, route('status.unsubscribe', $token)));
+            if (! in_array($email, $done, true)) {
+                Mail::to($email)->send($this->mailable($event, route('status.unsubscribe', $token)));
+                $done[] = $email;
+                Cache::put($cacheKey, $done, now()->addDay());
+            }
+
             $sent++;
         }
+
+        Cache::forget($cacheKey);
 
         $this->record('sent', null, $sent);
     }
@@ -156,7 +173,14 @@ class SendStatusNotification implements ShouldQueue
             $headers['X-Status-Signature'] = hash_hmac('sha256', json_encode($payload) ?: '', $secret);
         }
 
+        $options = ['allow_redirects' => false];
+
+        if (! config('status.webhook_allow_private')) {
+            $options += SsrfGuard::pinOptions($endpoint, app(SsrfGuard::class)->assertSafeUrl($endpoint));
+        }
+
         Http::timeout((int) StatusSetting::get('webhook_timeout', 10))
+            ->withOptions($options)
             ->withHeaders($headers)
             ->post($endpoint, $payload)
             ->throw();

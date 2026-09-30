@@ -205,7 +205,8 @@ on every admin route.
 
 - [ ] `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL` = real https URL, then
       `php artisan config:cache && php artisan route:cache && npm run build`.
-- [ ] HTTPS enabled (required — auth cookies are secure).
+- [ ] HTTPS enabled (required — auth cookies are secure). Generated URLs are forced to
+      https only when `APP_URL` starts with `https://`.
 - [ ] MySQL/MariaDB (not SQLite), with backups.
 - [ ] Cron runs `schedule:run` every minute; queue worker supervised and restarted
       on deploy (`php artisan queue:restart`).
@@ -227,6 +228,7 @@ on every admin route.
 | Login page loops / 419 | `APP_URL` must match the URL you visit; clear cookies |
 | Logos don’t show | Run `php artisan storage:link` |
 | No emails arrive | Settings → Mail: verify SMTP, use Test email; check Mailpit (`localhost:1025`) in dev; check Deliveries page for `failed` rows (errors logged without secrets) |
+| Webhook rejected as private/reserved address | Webhook targets pass the SSRF guard; set `STATUS_WEBHOOK_ALLOW_PRIVATE=true` in `.env` only if you must reach internal hosts |
 | A service flaps up/down | Raise its “min failures before down” (per-service or global) |
 | Public page looks outdated | It’s cached briefly by design; flips invalidate it within seconds |
 
@@ -262,7 +264,7 @@ logs/audit/test output. Global helpers in `app/helper/helper.php`
 `status:cleanup` (01:00) · `status:recalculate` · `status:test --service=ID`.
 
 ```bash
-php artisan test            # full suite (19 tests, must stay green)
+php artisan test            # full suite (54 tests, must stay green)
 vendor/bin/pint --dirty     # code style — run before finalizing PHP changes
 ```
 

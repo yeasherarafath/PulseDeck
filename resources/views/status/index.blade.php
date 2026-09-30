@@ -125,13 +125,15 @@
             </div>
         </div>
 
+        @if (session('status'))
+            <div class="alert alert-success" role="alert">{{ session('status') }}</div>
+        @endif
+
         {{-- Subscribe --}}
+        @if (setting_bool('subscriptions_enabled', true))
         <div class="card">
             <div class="card-body">
                 <h3 class="card-title">Get incident updates by email</h3>
-                @if (session('status'))
-                    <div class="alert alert-success" role="alert">{{ session('status') }}</div>
-                @endif
                 <form method="POST" action="{{ route('status.subscribe') }}">
                     @csrf
                     <div class="input-group">
@@ -142,5 +144,6 @@
                 </form>
             </div>
         </div>
+        @endif
     </div>
 @endsection

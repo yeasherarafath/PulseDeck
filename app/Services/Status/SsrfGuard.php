@@ -15,9 +15,11 @@ class SsrfGuard
     private const ALLOWED_SCHEMES = ['http', 'https'];
 
     /**
+     * @return list<string> Validated addresses the host resolved to (empty for literal IPs).
+     *
      * @throws SsrfBlockedException
      */
-    public function assertSafeUrl(string $url): void
+    public function assertSafeUrl(string $url): array
     {
         $parts = parse_url($url);
 
@@ -31,13 +33,15 @@ class SsrfGuard
             throw new SsrfBlockedException("URL scheme '{$scheme}' is not allowed. Only http and https may be monitored.");
         }
 
-        $this->assertSafeHost($parts['host']);
+        return $this->assertSafeHost($parts['host']);
     }
 
     /**
+     * @return list<string>
+     *
      * @throws SsrfBlockedException
      */
-    public function assertSafeHost(string $host): void
+    public function assertSafeHost(string $host): array
     {
         $host = trim($host, "[] \t\n\r\0\x0B");
 
@@ -54,14 +58,38 @@ class SsrfGuard
         if (filter_var($host, FILTER_VALIDATE_IP)) {
             $this->assertPublicIp($host);
 
-            return;
+            return [];
         }
 
         // Resolve and validate EVERY address (mitigates naive DNS rebinding).
         // If DNS fails here, the HTTP layer reports the precise DNS error.
-        foreach ($this->resolveHost($host) as $ip) {
+        $ips = $this->resolveHost($host);
+
+        foreach ($ips as $ip) {
             $this->assertPublicIp($ip);
         }
+
+        return $ips;
+    }
+
+    /**
+     * Guzzle options pinning the connection to already-validated addresses,
+     * so DNS cannot change between the safety check and the connect (rebinding).
+     *
+     * @param  list<string>  $ips
+     * @return array<string, mixed>
+     */
+    public static function pinOptions(string $url, array $ips): array
+    {
+        if ($ips === [] || ! defined('CURLOPT_RESOLVE')) {
+            return [];
+        }
+
+        $parts = parse_url($url);
+        $port = $parts['port'] ?? (strtolower($parts['scheme'] ?? 'http') === 'https' ? 443 : 80);
+        $addresses = array_map(fn (string $ip) => str_contains($ip, ':') ? "[{$ip}]" : $ip, $ips);
+
+        return ['curl' => [CURLOPT_RESOLVE => [$parts['host'].':'.$port.':'.implode(',', $addresses)]]];
     }
 
     /**

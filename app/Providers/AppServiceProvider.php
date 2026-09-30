@@ -33,8 +33,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Generated URLs (notifications, signed links, redirects) follow APP_URL.
-        URL::forceScheme('https');
+        // Generated URLs follow APP_URL: force https only when APP_URL is https,
+        // so plain-http local setups keep working.
+        if (str_starts_with((string) config('app.url'), 'https://')) {
+            URL::forceScheme('https');
+        }
         // One Tabler-styled pagination element across every index page.
         Paginator::defaultView('vendor.pagination.status');
         Paginator::defaultSimpleView('vendor.pagination.status');
@@ -56,7 +59,6 @@ class AppServiceProvider extends ServiceProvider
         }
 
         config(['status.admin_prefix' => $prefix]);
-        config(['fortify.home' => '/'.$prefix.'/status']);
     }
 
     /**

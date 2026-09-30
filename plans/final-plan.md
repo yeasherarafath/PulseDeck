@@ -29,7 +29,7 @@ Locks:
 **Stack:**
 
 ```text
-Laravel 12.x · PHP 8.3+ · Vite · Laravel HTTP Client · Scheduler · Queue (database) ·
+Laravel 13.x · PHP 8.3+ · Vite · Laravel HTTP Client · Scheduler · Queue (database) ·
 Events/Listeners · Spatie Permission · Laravel Boost (dev) · Pint + Pest/PHPUnit ·
 Tabler v1.x via npm + Tom Select + Monaco Editor + ApexCharts
 ```

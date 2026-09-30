@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers\Admin\Status;
 
+use App\Enums\Status\CheckInterval;
 use App\Enums\Status\SettingGroup;
 use App\Enums\Status\SettingType;
 use App\Http\Controllers\Controller;
 use App\Models\Status\StatusAuditLog;
 use App\Models\Status\StatusSetting;
+use App\Rules\AllowedMonitorUrl;
+use App\Services\Status\SsrfGuard;
 use App\Services\Status\StatusMailConfig;
-use DOMDocument;
-use DOMXPath;
+use App\Services\Status\SvgSanitizer;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -89,6 +91,9 @@ class SettingsController extends Controller
         $rules['settings.admin_prefix'][] = 'regex:/^[a-z0-9\-\/]+$/i';
         $rules['settings.base_url'][] = 'url';
         $rules['settings.webhook_default_url'][] = 'url';
+        if (! config('status.webhook_allow_private')) {
+            $rules['settings.webhook_default_url'][] = new AllowedMonitorUrl;
+        }
         $rules['settings.mail_from_address'][] = 'email';
         $rules['settings.contact_email'][] = 'email';
         $rules['settings.mail_port'][] = 'min:1';
@@ -98,13 +103,29 @@ class SettingsController extends Controller
         $rules['settings.raw_checks_retention_days'][] = 'min:1';
         $rules['settings.daily_stats_retention_days'][] = 'min:1';
         $rules['settings.audit_retention_days'][] = 'min:1';
+        $rules['settings.default_check_interval'][] = 'in:'.implode(',', array_column(CheckInterval::cases(), 'value'));
+        $rules['settings.default_timeout'][] = 'min:1';
+        $rules['settings.default_timeout'][] = 'max:60';
+        $rules['settings.default_connect_timeout'][] = 'min:1';
+        $rules['settings.default_connect_timeout'][] = 'max:60';
         $rules['settings.mail_mailer'][] = 'in:smtp,sendmail,log';
         $rules['settings.mail_encryption'][] = 'in:tls,ssl,none';
         $rules['branding.*'] = ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp,ico', 'max:2048'];
         $rules['remove_branding.*'] = ['sometimes', 'boolean'];
+        $rules['clear_secrets.*'] = ['sometimes', 'boolean'];
+        $rules['settings.app_name'][] = 'max:100';
 
         $validated = $request->validate($rules);
         $input = $validated['settings'] ?? [];
+
+        $timeout = (int) ($input['default_timeout'] ?? $rows['default_timeout']->value ?? 15);
+        $connectTimeout = (int) ($input['default_connect_timeout'] ?? $rows['default_connect_timeout']->value ?? 5);
+
+        if ($connectTimeout > $timeout) {
+            throw ValidationException::withMessages([
+                'settings.default_connect_timeout' => 'The default connect timeout may not exceed the default timeout.',
+            ]);
+        }
 
         // Full-form posts (the settings UI sends settings_form=1) treat
         // missing checkboxes as OFF. Partial payloads (API/tests) only touch
@@ -129,8 +150,14 @@ class SettingsController extends Controller
                 $value = $input[$key];
             }
 
-            // Blank secret fields keep the stored value (forms never prefill them).
+            // Blank secret fields keep the stored value (forms never prefill
+            // them); an explicit "clear" tick removes it.
             if ($row->is_encrypted && ($value === null || $value === '')) {
+                if ($request->boolean("clear_secrets.{$key}")) {
+                    StatusSetting::set($key, null, $request->user()->id);
+                    $changed[] = $key;
+                }
+
                 continue;
             }
 
@@ -152,11 +179,37 @@ class SettingsController extends Controller
     /**
      * Store/remove uploaded branding images. Returns changed keys.
      *
+     * Every upload is validated/sanitized BEFORE anything is stored or
+     * deleted, so a rejected file never leaves half-applied changes.
+     *
      * @return list<string>
      */
     private function handleBrandingUploads(Request $request): array
     {
         $changed = [];
+        $prepared = [];
+
+        foreach (self::BRANDING_FILES as $key) {
+            $file = $request->file("branding.{$key}");
+
+            if ($request->boolean("remove_branding.{$key}") || ! $file || ! $file->isValid()) {
+                continue;
+            }
+
+            // SVGs are served raw: allowlist-sanitize so a logo can never
+            // become stored XSS or leak files via XML entities.
+            if (strtolower($file->getClientOriginalExtension()) === 'svg') {
+                $sanitized = self::sanitizeSvg((string) file_get_contents($file->getRealPath()));
+
+                if ($sanitized === null) {
+                    throw ValidationException::withMessages([
+                        "branding.{$key}" => 'The SVG could not be read safely and was rejected.',
+                    ]);
+                }
+
+                $prepared[$key] = $sanitized;
+            }
+        }
 
         foreach (self::BRANDING_FILES as $key) {
             $row = StatusSetting::where('key', $key)->first();
@@ -179,26 +232,15 @@ class SettingsController extends Controller
                 continue;
             }
 
-            $this->deleteBrandingFile($row->value);
-
-            // SVGs are served raw: sanitize scripts/event handlers from the
-            // upload before storing so a logo can never become stored XSS.
-            if (strtolower($file->getClientOriginalExtension()) === 'svg') {
-                $sanitized = self::sanitizeSvg((string) file_get_contents($file->getRealPath()));
-
-                if ($sanitized === null) {
-                    throw ValidationException::withMessages([
-                        "branding.{$key}" => 'The SVG could not be read safely and was rejected.',
-                    ]);
-                }
-
+            if (isset($prepared[$key])) {
                 $path = 'branding/'.Str::random(40).'.svg';
 
-                Storage::disk('public')->put($path, $sanitized);
+                Storage::disk('public')->put($path, $prepared[$key]);
             } else {
                 $path = $file->store('branding', 'public');
             }
 
+            $this->deleteBrandingFile($row->value);
             StatusSetting::set($key, $path, $request->user()->id);
             $changed[] = $key;
         }
@@ -207,44 +249,11 @@ class SettingsController extends Controller
     }
 
     /**
-     * Strip <script> elements, on* handlers, and javascript: links from SVG
-     * markup. Returns the clean XML, or null when it is not parseable.
+     * Clean SVG markup (see SvgSanitizer). Returns null when unsafe/unparseable.
      */
     public static function sanitizeSvg(string $xml): ?string
     {
-        if (trim($xml) === '') {
-            return null;
-        }
-
-        $previous = libxml_use_internal_errors(true);
-
-        try {
-            $dom = new DOMDocument;
-
-            if (! $dom->loadXML($xml, LIBXML_NONET | LIBXML_NOENT)) {
-                return null;
-            }
-
-            foreach (iterator_to_array($dom->getElementsByTagName('script')) as $script) {
-                $script->parentNode?->removeChild($script);
-            }
-
-            $xpath = new DOMXPath($dom);
-
-            foreach ($xpath->query('//@*[starts-with(local-name(), "on")]') ?: [] as $attribute) {
-                $attribute->ownerElement?->removeAttribute($attribute->nodeName);
-            }
-
-            foreach ($xpath->query('//@href | //@xlink:href') ?: [] as $attribute) {
-                if (str_starts_with(strtolower(trim((string) $attribute->nodeValue)), 'javascript:')) {
-                    $attribute->ownerElement?->removeAttribute($attribute->nodeName);
-                }
-            }
-
-            return $dom->saveXML() ?: null;
-        } finally {
-            libxml_use_internal_errors($previous);
-        }
+        return SvgSanitizer::sanitize($xml);
     }
 
     private function deleteBrandingFile(?string $path): void
@@ -288,7 +297,13 @@ class SettingsController extends Controller
         }
 
         try {
-            Http::timeout((int) setting('webhook_timeout', 10))->post($endpoint, [
+            $options = ['allow_redirects' => false];
+
+            if (! config('status.webhook_allow_private')) {
+                $options += SsrfGuard::pinOptions($endpoint, app(SsrfGuard::class)->assertSafeUrl($endpoint));
+            }
+
+            Http::timeout((int) setting('webhook_timeout', 10))->withOptions($options)->post($endpoint, [
                 'event' => 'test',
                 'subject' => 'Webhook test from '.setting('app_name', config('app.name')),
                 'sent_at' => now()->toIso8601String(),
