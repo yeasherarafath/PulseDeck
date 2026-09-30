@@ -104,6 +104,9 @@
                                             </button>
                                         </form>
                                     @endcan
+                                    @can('status.incidents.create')
+                                        <a href="{{ route('admin.status.incidents.create', ['service' => $service->id]) }}" class="btn btn-sm" title="Open an incident for this service">Incident</a>
+                                    @endcan
                                     @can('status.services.delete')
                                         <form method="POST" action="{{ route('admin.status.services.destroy', $service) }}" class="d-inline" onsubmit="return confirm('Delete {{ addslashes($service->name) }} and all its history?')">
                                             @csrf

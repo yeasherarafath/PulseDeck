@@ -5,6 +5,8 @@ use App\Http\Controllers\Admin\Status\AuditLogController;
 use App\Http\Controllers\Admin\Status\DashboardController;
 use App\Http\Controllers\Admin\Status\DeliveryController;
 use App\Http\Controllers\Admin\Status\GroupController;
+use App\Http\Controllers\Admin\Status\HeaderPresetController;
+use App\Http\Controllers\Admin\Status\HeaderTemplateController;
 use App\Http\Controllers\Admin\Status\IncidentController;
 use App\Http\Controllers\Admin\Status\MaintenanceController;
 use App\Http\Controllers\Admin\Status\MonitoringController;
@@ -63,6 +65,20 @@ Route::prefix(trim((string) config('status.admin_prefix', 'admin'), '/').'/statu
         Route::delete('{group}', [GroupController::class, 'destroy'])->name('destroy')->middleware('permission:status.services.delete');
     });
 
+    Route::prefix('header-presets')->name('header-presets.')->group(function () {
+        Route::get('/', [HeaderPresetController::class, 'index'])->name('index')->middleware('permission:status.services.view');
+        Route::post('/', [HeaderPresetController::class, 'store'])->name('store')->middleware('permission:status.services.create');
+        Route::put('{preset}', [HeaderPresetController::class, 'update'])->name('update')->middleware('permission:status.services.update');
+        Route::delete('{preset}', [HeaderPresetController::class, 'destroy'])->name('destroy')->middleware('permission:status.services.delete');
+    });
+
+    Route::prefix('header-templates')->name('header-templates.')->group(function () {
+        Route::get('/', [HeaderTemplateController::class, 'index'])->name('index')->middleware('permission:status.services.view');
+        Route::post('/', [HeaderTemplateController::class, 'store'])->name('store')->middleware('permission:status.services.create');
+        Route::put('{template}', [HeaderTemplateController::class, 'update'])->name('update')->middleware('permission:status.services.update');
+        Route::delete('{template}', [HeaderTemplateController::class, 'destroy'])->name('destroy')->middleware('permission:status.services.delete');
+    });
+
     Route::prefix('services')->name('services.')->group(function () {
         Route::get('/', [ServiceController::class, 'index'])->name('index')->middleware('permission:status.services.view');
         Route::get('create', [ServiceController::class, 'create'])->name('create')->middleware('permission:status.services.create');
@@ -117,6 +133,8 @@ Route::prefix(trim((string) config('status.admin_prefix', 'admin'), '/').'/statu
         Route::put('/', [SettingsController::class, 'update'])->name('.update');
         Route::post('test-mail', [SettingsController::class, 'testMail'])->name('.test-mail')->middleware('throttle:5,1');
         Route::post('test-webhook', [SettingsController::class, 'testWebhook'])->name('.test-webhook')->middleware('throttle:5,1');
+        Route::post('clear-cache', [SettingsController::class, 'clearCache'])->name('.clear-cache')->middleware('throttle:5,1');
+        Route::post('queue-work', [SettingsController::class, 'queueWork'])->name('.queue-work')->middleware('throttle:3,1');
     });
 
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs')->middleware('permission:status.settings.manage');

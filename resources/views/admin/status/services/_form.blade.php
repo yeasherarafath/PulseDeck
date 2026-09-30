@@ -405,6 +405,11 @@
                 <button type="button" class="btn" data-test-request data-test-url="{{ $testUrl }}">Test request</button>
             @endif
             <a href="{{ route('admin.status.services.index') }}" class="btn btn-link">Cancel</a>
+            @if (!empty($service?->id))
+                @can('status.incidents.create')
+                    <a href="{{ route('admin.status.incidents.create', ['service' => $service->id]) }}" class="btn btn-link text-danger ms-auto">Open incident</a>
+                @endcan
+            @endif
         </div>
     </div>
 </form>

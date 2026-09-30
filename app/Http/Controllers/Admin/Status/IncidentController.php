@@ -36,12 +36,19 @@ class IncidentController extends Controller
         ]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
         $this->authorize('status.incidents.create');
 
+        $preselectedServiceId = $request->integer('service') ?: null;
+
+        if ($preselectedServiceId !== null && ! StatusService::whereKey($preselectedServiceId)->exists()) {
+            $preselectedServiceId = null;
+        }
+
         return view('admin.status.incidents.create', [
             'services' => StatusService::orderBy('name')->get(),
+            'preselectedServiceId' => $preselectedServiceId,
         ]);
     }
 

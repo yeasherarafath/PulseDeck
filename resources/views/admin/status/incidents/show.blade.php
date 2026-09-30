@@ -31,7 +31,17 @@
                     </div>
                     <dl class="row">
                         <dt class="col-5">Service</dt>
-                        <dd class="col-7">{{ $incident->service?->name ?? '—' }}</dd>
+                        <dd class="col-7">
+                            @if ($incident->service)
+                                @can('status.services.view')
+                                    <a href="{{ route('admin.status.services.show', $incident->service) }}">{{ $incident->service->name }}</a>
+                                @else
+                                    {{ $incident->service->name }}
+                                @endcan
+                            @else
+                                —
+                            @endif
+                        </dd>
                         <dt class="col-5">Started</dt>
                         <dd class="col-7">{{ $incident->started_at->format('M j, Y H:i') }}</dd>
                         <dt class="col-5">Resolved</dt>

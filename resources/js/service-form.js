@@ -285,7 +285,15 @@ function initAuthPanels() {
         const active = form.querySelector('[data-auth-type]:checked')?.dataset.authType ?? 'none';
 
         form.querySelectorAll('[data-auth-panel]').forEach((panel) => {
-            panel.classList.toggle('d-none', panel.dataset.authPanel !== active);
+            const visible = panel.dataset.authPanel === active;
+            panel.classList.toggle('d-none', !visible);
+
+            // Hidden panels must not submit: disabled inputs are skipped by
+            // native submit, FormData, and collectRows(), so stale secrets
+            // from an inactive method can never leak or overwrite.
+            panel.querySelectorAll('input, select, textarea').forEach((el) => {
+                el.disabled = !visible;
+            });
         });
     };
 
@@ -419,7 +427,7 @@ function collectRows(containerId) {
         const obj = {};
 
         row.querySelectorAll('input, select, textarea').forEach((el) => {
-            if (!el.name) {
+            if (!el.name || el.disabled) {
                 return;
             }
 

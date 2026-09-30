@@ -19,7 +19,7 @@
                         <select class="form-select" id="i-service" name="service_id">
                             <option value="">No specific service</option>
                             @foreach ($services as $service)
-                                <option value="{{ $service->id }}" @selected(old('service_id') == $service->id)>{{ $service->name }}</option>
+                                <option value="{{ $service->id }}" @selected((int) old('service_id', $preselectedServiceId ?? 0) === (int) $service->id)>{{ $service->name }}</option>
                             @endforeach
                         </select>
                     </div>

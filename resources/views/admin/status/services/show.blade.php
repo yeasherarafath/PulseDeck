@@ -15,6 +15,9 @@
         @can('status.services.update')
             <a href="{{ route('admin.status.services.edit', $service) }}" class="btn btn-primary">Edit</a>
         @endcan
+        @can('status.incidents.create')
+            <a href="{{ route('admin.status.incidents.create', ['service' => $service->id]) }}" class="btn btn-danger">Open incident</a>
+        @endcan
     </div>
 @endsection
 

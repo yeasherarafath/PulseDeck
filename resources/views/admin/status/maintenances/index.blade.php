@@ -30,7 +30,17 @@
                     @forelse ($maintenances as $maintenance)
                         <tr>
                             <td>{{ $maintenance->title }}</td>
-                            <td>{{ $maintenance->services->pluck('name')->join(', ') }}</td>
+                            <td>
+                                @forelse ($maintenance->services as $service)
+                                    @can('status.services.view')
+                                        <a href="{{ route('admin.status.services.show', $service) }}">{{ $service->name }}</a>{{ $loop->last ? '' : ', ' }}
+                                    @else
+                                        {{ $service->name }}{{ $loop->last ? '' : ', ' }}
+                                    @endcan
+                                @empty
+                                    —
+                                @endforelse
+                            </td>
                             <td class="text-nowrap">{{ setting_time($maintenance->starts_at) }} – {{ setting_time($maintenance->ends_at) }}</td>
                             <td class="text-nowrap"><x-status-badge :status="$maintenance->status" /></td>
                             <td class="text-end">

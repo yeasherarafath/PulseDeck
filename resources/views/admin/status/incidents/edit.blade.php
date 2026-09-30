@@ -22,6 +22,11 @@
                                 <option value="{{ $service->id }}" @selected(old('service_id', $incident->service_id) == $service->id)>{{ $service->name }}</option>
                             @endforeach
                         </select>
+                        @if ($incident->service)
+                            @can('status.services.view')
+                                <div class="form-hint"><a href="{{ route('admin.status.services.show', $incident->service) }}">View {{ $incident->service->name }}</a></div>
+                            @endcan
+                        @endif
                     </div>
                     <div class="col-md-4">
                         <label class="form-label required">Impact</label>

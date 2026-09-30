@@ -39,7 +39,13 @@
                             <td>{{ $log->user?->email ?? 'system' }}</td>
                             <td><code>{{ $log->action }}</code></td>
                             <td class="text-secondary small">{{ $log->subject_type ? class_basename($log->subject_type).' #'.$log->subject_id : '—' }}</td>
-                            <td class="text-secondary small">{{ $log->ip_address ?? '—' }}</td>
+                            <td class="text-secondary small">
+                                @if (!empty($log->ip_address))
+                                    <a href="https://newisty.com/ip-lookup?ip={{ urlencode($log->ip_address) }}" target="_blank" rel="noopener">{{ $log->ip_address }}</a>
+                                @else
+                                    —
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr><td colspan="5"><div class="empty"><p class="empty-title">No audit entries</p></div></td></tr>

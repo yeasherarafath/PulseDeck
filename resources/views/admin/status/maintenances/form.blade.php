@@ -40,6 +40,9 @@
                             <label class="form-check">
                                 <input type="checkbox" class="form-check-input" name="services[]" value="{{ $service->id }}" @checked(in_array($service->id, (array) $selected)) />
                                 <span class="form-check-label">{{ $service->name }}</span>
+                                @can('status.services.view')
+                                    <a href="{{ route('admin.status.services.show', $service) }}" class="ms-1 small">View</a>
+                                @endcan
                             </label>
                         @endforeach
                     </div>

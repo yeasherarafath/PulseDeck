@@ -119,6 +119,33 @@
 
     <div class="row row-deck row-cards mt-3">
         <div class="col-md-6">
+            <form method="POST" action="{{ route('admin.status.settings.clear-cache') }}">
+                @csrf
+                <div class="card">
+                    <div class="card-header"><h3 class="card-title">Clear caches</h3></div>
+                    <div class="card-body">
+                        <p class="text-secondary">Runs <code class="font-monospace">php artisan optimize:clear</code> (config, route, view and application caches). Use after changing <code class="font-monospace">.env</code> or the admin prefix. App v{{ config('app.version') }}.</p>
+                    </div>
+                    <div class="card-footer"><button type="submit" class="btn">Clear caches</button></div>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-6">
+            <form method="POST" action="{{ route('admin.status.settings.queue-work') }}">
+                @csrf
+                <div class="card">
+                    <div class="card-header"><h3 class="card-title">Process queue now</h3></div>
+                    <div class="card-body">
+                        <p class="text-secondary">Runs <code class="font-monospace">queue:work --stop-when-empty</code> once (up to ~50s) to process pending checks and notifications immediately.</p>
+                    </div>
+                    <div class="card-footer"><button type="submit" class="btn">Run queue worker</button></div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row row-deck row-cards mt-3">
+        <div class="col-md-6">
             <form method="POST" action="{{ route('admin.status.settings.test-mail') }}">
                 @csrf
                 <div class="card">

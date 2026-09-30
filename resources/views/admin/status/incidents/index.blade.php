@@ -48,7 +48,17 @@
                     @forelse ($incidents as $incident)
                         <tr>
                             <td><a href="{{ route('admin.status.incidents.show', $incident) }}">{{ $incident->title }}</a></td>
-                            <td>{{ $incident->service?->name ?? '—' }}</td>
+                            <td>
+                                @if ($incident->service)
+                                    @can('status.services.view')
+                                        <a href="{{ route('admin.status.services.show', $incident->service) }}">{{ $incident->service->name }}</a>
+                                    @else
+                                        {{ $incident->service->name }}
+                                    @endcan
+                                @else
+                                    —
+                                @endif
+                            </td>
                             <td class="text-nowrap"><x-status-badge :status="$incident->status" /></td>
                             <td class="text-nowrap"><x-status-badge :status="$incident->impact" /></td>
                             <td class="text-nowrap">{{ $incident->started_at->diffForHumans() }}</td>

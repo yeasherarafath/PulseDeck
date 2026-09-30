@@ -110,6 +110,7 @@ class AdminSmokeTest extends TestCase
         $pages = [
             '/admin/status', '/admin/status/monitoring',
             '/admin/status/groups',
+            '/admin/status/header-presets', '/admin/status/header-templates',
             '/admin/status/services', '/admin/status/services/create',
             "/admin/status/services/{$service->slug}", "/admin/status/services/{$service->slug}/edit",
             '/admin/status/incidents', '/admin/status/incidents/create',
@@ -208,6 +209,31 @@ class AdminSmokeTest extends TestCase
 
         $this->actingAs($this->admin)->postJson('/admin/status/services/test', $this->serviceData())
             ->assertOk();
+    }
+
+    public function test_service_pages_link_incident_create_with_preselected_service(): void
+    {
+        $service = StatusService::factory()->create();
+
+        $this->actingAs($this->admin)->get('/admin/status/services')
+            ->assertOk()->assertSee("incidents/create?service={$service->id}", false);
+
+        $this->actingAs($this->admin)->get("/admin/status/services/{$service->slug}")
+            ->assertOk()->assertSee("incidents/create?service={$service->id}", false);
+
+        $this->actingAs($this->admin)->get("/admin/status/services/{$service->slug}/edit")
+            ->assertOk()->assertSee("incidents/create?service={$service->id}", false);
+
+        $this->actingAs($this->admin)->get("/admin/status/incidents/create?service={$service->id}")
+            ->assertOk()->assertSee('value="'.$service->id.'" selected', false);
+
+        $incident = StatusIncident::create([
+            'service_id' => $service->id, 'title' => 'Link check', 'slug' => 'link-check-1',
+            'status' => 'investigating', 'impact' => 'minor', 'started_at' => now(),
+        ]);
+
+        $this->actingAs($this->admin)->get("/admin/status/incidents/{$incident->id}")
+            ->assertOk()->assertSee(route('admin.status.services.show', $service), false);
     }
 
     public function test_incident_lifecycle_and_public_visibility(): void

@@ -82,6 +82,28 @@
     min-width: 480px;
 }
 
+// --- Tom Select dropdowns must float above following content ---
+// (The header name/value dropdowns open over the "+ Add header" button and
+// the Request body section; without a solid background + stacking context
+// the rows behind bleed through the option list.)
+#header-rows .ts-wrapper,
+[data-header-value-wrap] .ts-wrapper {
+    position: relative;
+    z-index: 30;
+}
+
+#header-rows .ts-dropdown,
+[data-header-value-wrap] .ts-dropdown {
+    z-index: 1050;
+    background: var(--tblr-bg-surface);
+    border: 1px solid var(--tblr-border-color);
+}
+
+#header-rows .ts-dropdown .option,
+[data-header-value-wrap] .ts-dropdown .option {
+    background: var(--tblr-bg-surface);
+}
+
 // --- Tom Select alignment with Tabler CSS vars (dark mode) ---
 [data-bs-theme='dark'] {
     .ts-control,

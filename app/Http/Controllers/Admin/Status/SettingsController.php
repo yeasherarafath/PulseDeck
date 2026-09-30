@@ -15,6 +15,7 @@ use App\Services\Status\SvgSanitizer;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -263,6 +264,48 @@ class SettingsController extends Controller
         if ($path && ! str_starts_with($path, 'http')) {
             Storage::disk('public')->delete($path);
         }
+    }
+
+    public function clearCache(): RedirectResponse
+    {
+        $this->authorize('status.settings.manage');
+
+        try {
+            Artisan::call('optimize:clear');
+            $output = trim(Artisan::output()) ?: 'All caches cleared.';
+        } catch (\Throwable $exception) {
+            return redirect()->route('admin.status.settings')
+                ->with('error', 'Cache clear failed: '.mb_substr($exception->getMessage(), 0, 300));
+        }
+
+        StatusAuditLog::record('settings.cache-cleared', null, null, null);
+
+        return redirect()->route('admin.status.settings')
+            ->with('status', 'Caches cleared. '.mb_substr($output, 0, 300));
+    }
+
+    public function queueWork(): RedirectResponse
+    {
+        $this->authorize('status.settings.manage');
+
+        try {
+            set_time_limit(90);
+            Artisan::call('queue:work', [
+                '--stop-when-empty' => true,
+                '--timeout' => 60,
+                '--tries' => 1,
+                '--max-time' => 50,
+            ]);
+            $output = trim(Artisan::output()) ?: 'Queue drained — no pending jobs.';
+        } catch (\Throwable $exception) {
+            return redirect()->route('admin.status.settings')
+                ->with('error', 'Queue run failed: '.mb_substr($exception->getMessage(), 0, 300));
+        }
+
+        StatusAuditLog::record('settings.queue-worked', null, null, null);
+
+        return redirect()->route('admin.status.settings')
+            ->with('status', 'Queue processed. '.mb_substr($output, 0, 300));
     }
 
     public function testMail(Request $request): RedirectResponse
