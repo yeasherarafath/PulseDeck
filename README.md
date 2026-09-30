@@ -335,5 +335,8 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup, workflow, code style, and te
 
 ## License
 
-Built on the [Laravel framework](https://laravel.com) (MIT). Application code follows
-the repo’s own license once added.
+MIT — see [LICENSE](LICENSE).
+
+Copyright (c) 2026 Yasir Arafat <yeasherarafath@gmail.com>.
+
+Built on the [Laravel framework](https://laravel.com) (MIT).
