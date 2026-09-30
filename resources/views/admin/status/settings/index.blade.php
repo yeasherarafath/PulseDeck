@@ -91,7 +91,7 @@
                                             @endforeach
                                         </select>
                                         @if ($setting->description)<div class="form-hint">{{ $setting->description }}</div>@endif
-                                    @elseif (in_array($setting->key, ['logo_path', 'logo_dark_path', 'favicon_path'], true))
+                                    @elseif (in_array($setting->key, ['logo_path', 'logo_dark_path', 'favicon_path', 'og_image_path'], true))
                                         @include('admin.status.settings._branding-field', ['setting' => $setting])
                                     @else
                                         <input type="{{ $setting->type->value === 'integer' ? 'number' : 'text' }}" class="form-control" id="set-{{ $setting->key }}" name="settings[{{ $setting->key }}]" value="{{ old('settings.'.$setting->key, $setting->value) }}" />

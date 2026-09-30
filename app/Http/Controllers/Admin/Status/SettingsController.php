@@ -32,7 +32,7 @@ class SettingsController extends Controller
      *
      * @var list<string>
      */
-    public const BRANDING_FILES = ['logo_path', 'logo_dark_path', 'favicon_path'];
+    public const BRANDING_FILES = ['logo_path', 'logo_dark_path', 'favicon_path', 'og_image_path'];
 
     public function index(): View
     {
@@ -114,6 +114,8 @@ class SettingsController extends Controller
         $rules['remove_branding.*'] = ['sometimes', 'boolean'];
         $rules['clear_secrets.*'] = ['sometimes', 'boolean'];
         $rules['settings.app_name'][] = 'max:100';
+        $rules['settings.meta_keywords'][] = 'max:255';
+        $rules['settings.meta_robots'][] = 'max:100';
 
         $validated = $request->validate($rules);
         $input = $validated['settings'] ?? [];

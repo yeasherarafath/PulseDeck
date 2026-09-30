@@ -4,15 +4,53 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
-    @php($favicon = branding_asset(setting('favicon_path')))
-    @if ($favicon)<link rel="icon" href="{{ $favicon }}" />@endif
-    <title>@yield('meta-title', setting('app_name', config('app.name', 'PulseDeck')) . ' Status')</title>
-    <meta name="description" content="@yield('meta-description', 'Live service status and uptime history.')" />
-    <link rel="canonical" href="@yield('canonical-url', url()->current())" />
-    <meta property="og:title" content="@yield('meta-title', setting('app_name', config('app.name', 'PulseDeck')) . ' Status')" />
-    <meta property="og:description" content="@yield('meta-description', 'Live service status and uptime history.')" />
+    @php
+        $siteName = setting('app_name', config('app.name', 'PulseDeck'));
+        $defaultTitle = $siteName.' Status';
+        $defaultDescription = setting('app_description', 'Live service status and uptime history.');
+        // Inline @section('key', expr) content is already escaped by Blade,
+        // so fallbacks are pre-escaped here and output raw to stay single-escaped.
+        $pageTitle = trim($__env->yieldContent('meta-title', e($defaultTitle)));
+        $pageDescription = trim($__env->yieldContent('meta-description', e($defaultDescription)));
+        $canonicalUrl = trim($__env->yieldContent('canonical-url', e(url()->current())));
+        $metaKeywords = setting('meta_keywords');
+        $metaRobots = setting('meta_robots', 'index, follow');
+        $favicon = branding_asset(setting('favicon_path'));
+        $ogImage = branding_asset(setting('og_image_path') ?: setting('logo_path'));
+        $ogLocale = str_replace('-', '_', (string) app()->getLocale());
+    @endphp
+    @if ($favicon)
+        <link rel="icon" href="{{ $favicon }}" />
+        <link rel="apple-touch-icon" href="{{ $favicon }}" />
+    @endif
+    <title>{!! $pageTitle !!}</title>
+    <meta name="description" content="{!! $pageDescription !!}" />
+    <meta name="author" content="{{ $siteName }}" />
+    @if (is_string($metaKeywords) && trim($metaKeywords) !== '')
+        <meta name="keywords" content="{{ trim($metaKeywords) }}" />
+    @endif
+    @if (is_string($metaRobots) && trim($metaRobots) !== '')
+        <meta name="robots" content="{{ trim($metaRobots) }}" />
+    @endif
+    <meta name="theme-color" content="#206bc4" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1a2234" media="(prefers-color-scheme: dark)" />
+    <link rel="canonical" href="{!! $canonicalUrl !!}" />
+    <meta property="og:title" content="{!! $pageTitle !!}" />
+    <meta property="og:description" content="{!! $pageDescription !!}" />
     <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:url" content="{!! $canonicalUrl !!}" />
+    <meta property="og:site_name" content="{{ $siteName }}" />
+    <meta property="og:locale" content="{{ $ogLocale }}" />
+    @if ($ogImage)
+        <meta property="og:image" content="{{ $ogImage }}" />
+        <meta property="og:image:alt" content="{{ $siteName }}" />
+    @endif
+    <meta name="twitter:card" content="{{ $ogImage ? 'summary_large_image' : 'summary' }}" />
+    <meta name="twitter:title" content="{!! $pageTitle !!}" />
+    <meta name="twitter:description" content="{!! $pageDescription !!}" />
+    @if ($ogImage)
+        <meta name="twitter:image" content="{{ $ogImage }}" />
+    @endif
     <script>
         // Pre-paint theme application (avoids a flash of the wrong theme).
         (function () {

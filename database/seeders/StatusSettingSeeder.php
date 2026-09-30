@@ -18,6 +18,7 @@ class StatusSettingSeeder extends Seeder
         ['key' => 'app_name', 'value' => 'PulseDeck', 'type' => SettingType::String, 'group' => SettingGroup::General, 'encrypted' => false, 'description' => 'Status page name shown in headers and titles.'],
         ['key' => 'app_tagline', 'value' => 'Service status & uptime', 'type' => SettingType::String, 'group' => SettingGroup::General, 'encrypted' => false, 'description' => 'Short tagline under the page name.'],
         ['key' => 'app_description', 'value' => 'Live service status and uptime history.', 'type' => SettingType::String, 'group' => SettingGroup::General, 'encrypted' => false, 'description' => 'SEO meta description for the public page.'],
+        ['key' => 'meta_keywords', 'value' => null, 'type' => SettingType::String, 'group' => SettingGroup::General, 'encrypted' => false, 'description' => 'SEO meta keywords (comma-separated, optional).'],
         ['key' => 'base_url', 'value' => null, 'type' => SettingType::String, 'group' => SettingGroup::General, 'encrypted' => false, 'description' => 'Canonical base URL (used for links in notifications).'],
         ['key' => 'contact_email', 'value' => null, 'type' => SettingType::String, 'group' => SettingGroup::General, 'encrypted' => false, 'description' => 'Public contact email.'],
         ['key' => 'timezone', 'value' => 'UTC', 'type' => SettingType::String, 'group' => SettingGroup::General, 'encrypted' => false, 'description' => 'Display timezone for dates.'],
@@ -28,6 +29,7 @@ class StatusSettingSeeder extends Seeder
         ['key' => 'logo_path', 'value' => null, 'type' => SettingType::String, 'group' => SettingGroup::Branding, 'encrypted' => false, 'description' => 'Light-mode logo path.'],
         ['key' => 'logo_dark_path', 'value' => null, 'type' => SettingType::String, 'group' => SettingGroup::Branding, 'encrypted' => false, 'description' => 'Dark-mode logo path.'],
         ['key' => 'favicon_path', 'value' => null, 'type' => SettingType::String, 'group' => SettingGroup::Branding, 'encrypted' => false, 'description' => 'Favicon path.'],
+        ['key' => 'og_image_path', 'value' => null, 'type' => SettingType::String, 'group' => SettingGroup::Branding, 'encrypted' => false, 'description' => 'Social share image (og:image / twitter:image). Falls back to the logo.'],
         ['key' => 'footer_text', 'value' => null, 'type' => SettingType::String, 'group' => SettingGroup::Branding, 'encrypted' => false, 'description' => 'Custom footer text for the public page.'],
         // Monitoring defaults
         ['key' => 'default_check_interval', 'value' => '300', 'type' => SettingType::Integer, 'group' => SettingGroup::Monitoring, 'encrypted' => false, 'description' => 'Default check interval in seconds for new services.'],
@@ -44,6 +46,7 @@ class StatusSettingSeeder extends Seeder
         ['key' => 'badge_enabled', 'value' => '1', 'type' => SettingType::Boolean, 'group' => SettingGroup::Public, 'encrypted' => false, 'description' => 'Enable the embeddable status badge.'],
         ['key' => 'public_refresh_seconds', 'value' => '45', 'type' => SettingType::Integer, 'group' => SettingGroup::Public, 'encrypted' => false, 'description' => 'Public page polling interval in seconds.'],
         ['key' => 'uptime_window_days', 'value' => '90', 'type' => SettingType::Integer, 'group' => SettingGroup::Public, 'encrypted' => false, 'description' => 'Days of uptime history shown publicly.'],
+        ['key' => 'meta_robots', 'value' => 'index, follow', 'type' => SettingType::String, 'group' => SettingGroup::Public, 'encrypted' => false, 'description' => 'Robots meta for the public page (e.g. index, follow).'],
         // Mail credentials
         ['key' => 'mail_enabled', 'value' => '0', 'type' => SettingType::Boolean, 'group' => SettingGroup::Mail, 'encrypted' => false, 'description' => 'Enable outgoing mail.'],
         ['key' => 'mail_mailer', 'value' => 'smtp', 'type' => SettingType::String, 'group' => SettingGroup::Mail, 'encrypted' => false, 'description' => 'Mail transport (smtp, sendmail, log).'],

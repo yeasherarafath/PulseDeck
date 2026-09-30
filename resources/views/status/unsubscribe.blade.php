@@ -1,6 +1,6 @@
 @extends('layouts.public-status')
 
-@section('meta-title', 'Unsubscribe')
+@section('meta-title', 'Unsubscribe | '.setting('app_name', config('app.name', 'Status')))
 @section('meta-description', 'Unsubscribe from status emails.')
 
 @section('content')

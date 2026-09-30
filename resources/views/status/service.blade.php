@@ -1,6 +1,6 @@
 @extends('layouts.public-status')
 
-@section('meta-title', $service['name'].' status')
+@section('meta-title', $service['name'].' status | '.setting('app_name', config('app.name', 'Status')))
 @section('meta-description', 'Current status, uptime history, and response times for '.$service['name'].'.')
 
 @section('content')

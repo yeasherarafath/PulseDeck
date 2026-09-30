@@ -1,7 +1,7 @@
 @extends('layouts.public-status')
 
-@section('meta-title', config('app.name', 'Status').' Status')
-@section('meta-description', 'Live service status, incident history, and uptime.')
+@section('meta-title', setting('app_name', config('app.name', 'Status')).' Status')
+@section('meta-description', setting('app_description', 'Live service status, incident history, and uptime.'))
 
 @section('content')
     <div data-status-poll data-refresh-url="{{ route('status.refresh') }}" data-refresh-seconds="{{ $refresh_seconds }}">

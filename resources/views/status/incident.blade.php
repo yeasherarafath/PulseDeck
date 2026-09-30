@@ -1,6 +1,6 @@
 @extends('layouts.public-status')
 
-@section('meta-title', $incident->title)
+@section('meta-title', $incident->title.' | '.setting('app_name', config('app.name', 'Status')))
 @section('meta-description', 'Incident timeline: '.$incident->title.'.')
 
 @section('content')
