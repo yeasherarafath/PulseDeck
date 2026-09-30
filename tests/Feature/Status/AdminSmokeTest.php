@@ -118,6 +118,7 @@ class AdminSmokeTest extends TestCase
             '/admin/status/notifications/channels', '/admin/status/notifications/rules',
             '/admin/status/notifications/subscribers', '/admin/status/notifications/deliveries',
             '/admin/status/settings', '/admin/status/audit-logs', '/admin/status/api-docs',
+            '/admin/status/users', '/admin/status/roles', '/admin/status/profile',
             '/admin/status/services?search=x&active=1', '/admin/status/incidents?status=resolved',
         ];
 

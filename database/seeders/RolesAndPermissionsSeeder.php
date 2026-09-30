@@ -39,6 +39,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         'status.notifications.manage',
         'status.settings.manage',
+        'status.users.manage',
     ];
 
     public function run(): void
@@ -55,6 +56,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $manager = Role::firstOrCreate(['name' => 'status-manager', 'guard_name' => 'web']);
         $manager->syncPermissions(array_values(array_diff(self::PERMISSIONS, [
             'status.settings.manage',
+            'status.users.manage',
         ])));
 
         $viewer = Role::firstOrCreate(['name' => 'status-viewer', 'guard_name' => 'web']);

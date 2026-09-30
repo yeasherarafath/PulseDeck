@@ -10,9 +10,12 @@ use App\Http\Controllers\Admin\Status\MaintenanceController;
 use App\Http\Controllers\Admin\Status\MonitoringController;
 use App\Http\Controllers\Admin\Status\NotificationChannelController;
 use App\Http\Controllers\Admin\Status\NotificationRuleController;
+use App\Http\Controllers\Admin\Status\ProfileController;
+use App\Http\Controllers\Admin\Status\RoleController;
 use App\Http\Controllers\Admin\Status\ServiceController;
 use App\Http\Controllers\Admin\Status\SettingsController;
 use App\Http\Controllers\Admin\Status\SubscriberController;
+use App\Http\Controllers\Admin\Status\UserController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ResetPasswordController;
@@ -117,4 +120,24 @@ Route::prefix(trim((string) config('status.admin_prefix', 'admin'), '/').'/statu
     });
 
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs')->middleware('permission:status.settings.manage');
+
+    Route::prefix('users')->name('users.')->middleware('permission:status.users.manage')->group(function () {
+        Route::get('/', [UserController::class, 'index'])->name('index');
+        Route::post('/', [UserController::class, 'store'])->name('store');
+        Route::put('{user}', [UserController::class, 'update'])->name('update');
+        Route::delete('{user}', [UserController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('roles')->name('roles.')->middleware('permission:status.users.manage')->group(function () {
+        Route::get('/', [RoleController::class, 'index'])->name('index');
+        Route::post('/', [RoleController::class, 'store'])->name('store');
+        Route::put('{role}', [RoleController::class, 'update'])->name('update');
+        Route::delete('{role}', [RoleController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('profile')->name('profile')->group(function () {
+        Route::get('/', [ProfileController::class, 'edit']);
+        Route::put('/', [ProfileController::class, 'update'])->name('.update');
+        Route::put('password', [ProfileController::class, 'updatePassword'])->name('.password');
+    });
 });

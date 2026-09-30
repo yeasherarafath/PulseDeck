@@ -95,6 +95,24 @@
                             </li>
                         @endcan
                         <li class="nav-section-title">Configure</li>
+                        @can('status.users.manage')
+                            <li class="nav-item">
+                                <a class="nav-link{{ request()->routeIs('admin.status.users.*') ? ' active' : '' }}" href="{{ route('admin.status.users.index') }}">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 11a4 4 0 1 0 0 -8a4 4 0 0 0 0 8z" /><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /></svg>
+                                    </span>
+                                    <span class="nav-link-title">Admins</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link{{ request()->routeIs('admin.status.roles.*') ? ' active' : '' }}" href="{{ route('admin.status.roles.index') }}">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 3l8 4v5c0 5 -3.5 8 -8 9c-4.5 -1 -8 -4 -8 -9v-5z" /></svg>
+                                    </span>
+                                    <span class="nav-link-title">Roles</span>
+                                </a>
+                            </li>
+                        @endcan
                         @can('status.notifications.manage')
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle{{ request()->routeIs('admin.status.notifications.*') ? ' active' : '' }}" href="#sidebar-notifications" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="{{ request()->routeIs('admin.status.notifications.*') ? 'true' : 'false' }}">
@@ -158,6 +176,8 @@
                                     </div>
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                                    <a href="{{ route('admin.status.profile') }}" class="dropdown-item">Profile</a>
+                                    <div class="dropdown-divider"></div>
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
                                         <button type="submit" class="dropdown-item">Logout</button>
