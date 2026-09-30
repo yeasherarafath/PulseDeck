@@ -66,6 +66,9 @@ page, uptime percentages, charts, and alerts all flow from those results.
 | Slack / Discord / Telegram alerts | ~ planned | ✓ | ✓ | ✓ 90+ providers | ~ |
 | Private / internal pages | ✗ | ✓ | ✓ | ✓ | ✗ |
 | On-call schedules + escalations | ✗ | Via JSM / Opsgenie | ✓ built-in | ✗ | ✗ |
+| Subscriber limits | Unlimited (self-hosted) | Tiered by plan (100 → 25,000) | Capacity add-ons | — no subscriber system | Unlimited (self-hosted) |
+| Team roles / RBAC | ✓ 3 roles, 19 permissions | ✓ | ✓ org roles | ~ users, no roles | ~ basic multi-user |
+| API keys / tokens | ✗ planned | ✓ | ✓ | ✓ | ✓ |
 
 PulseDeck's pitch in one line: **Statuspage-style communication + real built-in
 HTTP monitoring, free and self-hosted** — without the per-subscriber pricing or
