@@ -72,7 +72,13 @@ function initPolling(root) {
                 if (row) {
                     const color = STATUS_COLORS[service.status] ?? 'secondary';
                     const text = STATUS_LABELS[service.status] ?? service.status;
-                    row.innerHTML = `<span class="badge bg-${color}-lt"><span class="status-dot bg-${color} me-1"></span>${text}</span>`;
+                    const badge = document.createElement('span');
+                    const dotEl = document.createElement('span');
+
+                    badge.className = `badge bg-${color}-lt`;
+                    dotEl.className = `status-dot bg-${color} me-1`;
+                    badge.append(dotEl, document.createTextNode(text));
+                    row.replaceChildren(badge);
                 }
             });
         } catch {

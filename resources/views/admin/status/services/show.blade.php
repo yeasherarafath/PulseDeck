@@ -10,6 +10,7 @@
                 @csrf
                 <button type="submit" class="btn">Check now</button>
             </form>
+            <button type="button" class="btn" id="test-saved-btn" data-bs-toggle="modal" data-bs-target="#test-saved-modal" data-url="{{ route('admin.status.services.test', $service) }}">Test request</button>
         @endcan
         @can('status.services.update')
             <a href="{{ route('admin.status.services.edit', $service) }}" class="btn btn-primary">Edit</a>
@@ -134,3 +135,60 @@
         </div>
     </div>
 @endsection
+
+@can('status.monitoring.run')
+    <div class="modal modal-blur fade" id="test-saved-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Test request &mdash; {{ $service->name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="test-saved-body"></div>
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
+        <script>
+            document.getElementById('test-saved-btn')?.addEventListener('click', async (event) => {
+                const body = document.getElementById('test-saved-body');
+
+                // Tabler's bundled Bootstrap opens the modal via data-bs-toggle.
+                body.textContent = 'Running test…';
+
+                try {
+                    const response = await fetch(event.currentTarget.dataset.url, {
+                        method: 'POST',
+                        headers: {'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json'},
+                    });
+                    const data = await response.json();
+                    const lines = [
+                        ['Result', data.result ?? data.message ?? 'error'],
+                        ['HTTP status', data.outcome?.http_status ?? '—'],
+                        ['Response time', data.outcome?.response_time_ms != null ? data.outcome.response_time_ms + ' ms' : '—'],
+                        ['Final URL', data.outcome?.final_url || '—'],
+                        ['Error', data.error || data.outcome?.error_message || data.outcome?.error || '—'],
+                    ];
+
+                    (data.assertions?.failures ?? []).forEach((f) => lines.push(['Failed assertion', (f.assertion ?? '') + ': ' + (f.message ?? '')]));
+
+                    const dl = document.createElement('dl');
+                    dl.className = 'row mb-0';
+                    lines.forEach(([key, value]) => {
+                        const dt = document.createElement('dt');
+                        const dd = document.createElement('dd');
+                        dt.className = 'col-4';
+                        dd.className = 'col-8';
+                        dt.textContent = key;
+                        dd.textContent = String(value);
+                        dl.append(dt, dd);
+                    });
+                    body.replaceChildren(dl);
+                } catch (error) {
+                    body.textContent = 'Test failed to run.';
+                }
+            });
+        </script>
+    @endpush
+@endcan

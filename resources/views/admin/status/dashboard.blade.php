@@ -19,7 +19,7 @@
             <div class="col-sm-6 col-lg-4 col-xl">
                 <div class="card">
                     <div class="card-body">
-                        <div class="subheader">{{ $label }}</div>
+                        <div class="subheader text-nowrap">{{ $label }}</div>
                         <div class="h1 mb-0">{{ $value }}</div>
                     </div>
                 </div>

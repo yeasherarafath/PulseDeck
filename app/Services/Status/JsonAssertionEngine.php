@@ -105,14 +105,6 @@ class JsonAssertionEngine
 
     private function regexMatches(string $actual, string $pattern): bool
     {
-        if ($pattern === '') {
-            return false;
-        }
-
-        if (@preg_match($pattern, '') === false) {
-            $pattern = '/'.str_replace('/', '\/', $pattern).'/';
-        }
-
-        return @preg_match($pattern, $actual) === 1;
+        return SafeRegex::matches($actual, $pattern);
     }
 }

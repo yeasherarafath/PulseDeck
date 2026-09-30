@@ -38,7 +38,7 @@ class GroupController extends Controller
 
         $group = StatusServiceGroup::create([
             'name' => $validated['name'],
-            'slug' => $validated['slug'] ?: Str::slug($validated['name']),
+            'slug' => ($validated['slug'] ?? null) ?: Str::slug($validated['name']),
             'description' => $validated['description'] ?? null,
             'sort_order' => (int) ($validated['sort_order'] ?? 0),
             'is_active' => (bool) ($validated['is_active'] ?? false),
@@ -63,7 +63,7 @@ class GroupController extends Controller
 
         $group->forceFill([
             'name' => $validated['name'],
-            'slug' => $validated['slug'] ?: $group->slug,
+            'slug' => ($validated['slug'] ?? null) ?: $group->slug,
             'description' => $validated['description'] ?? null,
             'sort_order' => (int) ($validated['sort_order'] ?? 0),
             'is_active' => (bool) ($validated['is_active'] ?? false),

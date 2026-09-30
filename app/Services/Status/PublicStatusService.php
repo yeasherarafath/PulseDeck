@@ -218,6 +218,11 @@ class PublicStatusService
             return ServiceStatus::Maintenance;
         }
 
+        // Nothing has been checked yet: do not claim "operational".
+        if ($values !== [] && count(array_unique($values)) === 1 && $values[0] === ServiceStatus::Unknown->value) {
+            return ServiceStatus::Unknown;
+        }
+
         return ServiceStatus::Operational;
     }
 

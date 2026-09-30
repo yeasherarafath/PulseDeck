@@ -199,15 +199,7 @@ class AssertionEngine
 
     private function regexMatches(string $subject, string $pattern): bool
     {
-        if ($pattern === '') {
-            return false;
-        }
-
-        if (@preg_match($pattern, '') === false) {
-            $pattern = '/'.str_replace('/', '\/', $pattern).'/';
-        }
-
-        return @preg_match($pattern, $subject) === 1;
+        return SafeRegex::matches($subject, $pattern);
     }
 
     private function displayValue(mixed $value): string
