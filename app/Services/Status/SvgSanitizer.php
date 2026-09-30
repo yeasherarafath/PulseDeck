@@ -27,6 +27,9 @@ class SvgSanitizer
         'clippath', 'mask', 'pattern', 'symbol', 'use',
     ];
 
+    /** Harmless wrappers: dropped but their (sanitized) children are kept. */
+    private const UNWRAP = ['a', 'switch'];
+
     /** @var list<string> */
     private const ATTRIBUTES = [
         'id', 'class', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rx', 'ry', 'width', 'height',
@@ -76,6 +79,18 @@ class SvgSanitizer
         foreach (iterator_to_array($parent->childNodes) as $child) {
             if ($child instanceof DOMElement) {
                 $namespace = $child->namespaceURI;
+
+                if (in_array(strtolower($child->localName), self::UNWRAP, true)
+                    && ($namespace === null || $namespace === self::SVG_NS)) {
+                    while ($child->firstChild) {
+                        $parent->insertBefore($child->firstChild, $child);
+                    }
+
+                    $parent->removeChild($child);
+                    self::cleanChildren($parent);
+
+                    return;
+                }
 
                 if (! in_array(strtolower($child->localName), self::ELEMENTS, true)
                     || ($namespace !== null && $namespace !== self::SVG_NS)) {

@@ -9,6 +9,7 @@ use App\Models\Status\StatusMaintenance;
 use App\Models\Status\StatusNotificationChannel;
 use App\Models\Status\StatusService;
 use App\Models\Status\StatusServiceGroup;
+use App\Models\Status\StatusSetting;
 use App\Models\Status\StatusSubscriber;
 use App\Models\User;
 use App\Services\Status\AssertionEngine;
@@ -240,6 +241,26 @@ class AdminSmokeTest extends TestCase
 
         $this->actingAs($this->admin)->delete("/admin/status/maintenances/{$maintenance->id}")->assertRedirect();
         $this->assertNull(StatusMaintenance::find($maintenance->id));
+    }
+
+    public function test_maintenance_times_are_entered_in_the_display_timezone(): void
+    {
+        StatusSetting::set('timezone', 'Asia/Dhaka');
+        Cache::flush();
+        $service = StatusService::factory()->create();
+
+        $this->actingAs($this->admin)->post('/admin/status/maintenances', [
+            'title' => 'TZ window',
+            'starts_at' => '2030-01-01T14:00',
+            'ends_at' => '2030-01-01T16:00',
+            'services' => [$service->id],
+        ])->assertSessionHasNoErrors();
+
+        $maintenance = StatusMaintenance::where('title', 'TZ window')->firstOrFail();
+        $this->assertSame('2030-01-01 08:00', $maintenance->starts_at->utc()->format('Y-m-d H:i'));
+
+        $this->actingAs($this->admin)->get("/admin/status/maintenances/{$maintenance->id}/edit")
+            ->assertOk()->assertSee('2030-01-01T14:00', false);
     }
 
     public function test_notification_channels_rules_and_subscribers(): void

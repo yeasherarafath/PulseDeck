@@ -64,6 +64,16 @@ class SvgSanitizerTest extends TestCase
         $this->assertStringNotContainsString('evil.test', $out);
     }
 
+    public function test_anchor_wrappers_keep_their_shapes(): void
+    {
+        $out = SvgSanitizer::sanitize(self::OPEN.'<a href="javascript:alert(1)"><rect width="5" height="5"/></a></svg>');
+
+        $this->assertNotNull($out);
+        $this->assertStringContainsString('<rect', $out);
+        $this->assertStringNotContainsString('<a', $out);
+        $this->assertStringNotContainsString('javascript', $out);
+    }
+
     public function test_external_style_urls_are_removed(): void
     {
         $out = SvgSanitizer::sanitize(self::OPEN.'<rect style="fill:url(https://evil.test/x)" width="1"/></svg>');

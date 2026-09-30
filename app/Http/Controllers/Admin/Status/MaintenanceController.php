@@ -51,8 +51,8 @@ class MaintenanceController extends Controller
         $maintenance = StatusMaintenance::create([
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
-            'starts_at' => $validated['starts_at'],
-            'ends_at' => $validated['ends_at'],
+            'starts_at' => setting_input_to_utc($validated['starts_at']),
+            'ends_at' => setting_input_to_utc($validated['ends_at']),
             'status' => MaintenanceStatus::Scheduled,
             'created_by' => $request->user()->id,
         ]);
@@ -91,8 +91,8 @@ class MaintenanceController extends Controller
         $maintenance->forceFill([
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
-            'starts_at' => $validated['starts_at'],
-            'ends_at' => $validated['ends_at'],
+            'starts_at' => setting_input_to_utc($validated['starts_at']),
+            'ends_at' => setting_input_to_utc($validated['ends_at']),
         ])->save();
 
         $maintenance->services()->sync($validated['services']);

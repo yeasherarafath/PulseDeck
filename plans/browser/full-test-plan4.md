@@ -51,7 +51,7 @@ Fixtures created by the seed step of this plan (create them once, reuse):
 | AUTH-02 | Valid login | Seed creds → Sign in | Redirect to `/admin/status`, dashboard shown, session cookie set | Pass |
 | AUTH-03 | Invalid password | Wrong password | Stays on `/login`, error under email, email kept, no user enumeration text | Todo |
 | AUTH-04 | Empty submit | Submit blank | Native `required`/server message, no 500 | Todo |
-| AUTH-05 | Per-IP throttle | 6 wrong logins in 60 s | 429 page (themed) on 6th | Todo |
+| AUTH-05 | Per-IP throttle | 6 wrong logins in 60 s | 429 page (themed) on 6th | Pass |
 | AUTH-06 | Per-email limiter | 5 wrong logins for one email from fresh session | Message "Too many login attempts. Try again in N seconds." | Todo |
 | AUTH-07 | Limiter reset | Correct login after limiter cleared | Login succeeds | Todo |
 | AUTH-08 | Guest → admin | GET `/admin/status` logged out | Redirect `/login`; after login lands on intended URL | Todo |
@@ -61,7 +61,7 @@ Fixtures created by the seed step of this plan (create them once, reuse):
 | AUTH-12 | Forgot unknown email | Enter unknown email | Same neutral response (see minor note AUTH-05 in results-2026-09-29) | Todo |
 | AUTH-13 | Reset with token | Open mailed link, set new password, login | Works; old password rejected; password restored afterwards | Todo |
 | AUTH-14 | Reset bad/expired token | Tamper token | Error, no crash | Todo |
-| AUTH-15 | CSRF | POST `/login` without `_token` (fetch) | 419 page | Todo |
+| AUTH-15 | CSRF | POST `/login` without `_token` (fetch) | 419 page | Pass |
 
 ## 2. Dashboard (`/admin/status`)
 
@@ -99,25 +99,25 @@ Fixtures created by the seed step of this plan (create them once, reuse):
 | SVC-F02 | Create minimal | Name + URL | Redirect to edit, flash "Service [X] created.", slug auto, appears on public page as Unknown | Pass |
 | SVC-F03 | Slug custom/duplicate | Reuse an existing slug | Unique error | Todo |
 | SVC-F04 | URL safety | `http://127.0.0.1/`, `http://localhost`, `ftp://x`, `http://169.254.169.254` | Rejected with clear message | Todo |
-| SVC-F05 | Method select | GET/POST/PUT/PATCH/DELETE/HEAD/OPTIONS saved | Todo |
+| SVC-F05 | Method select | GET/POST/PUT/PATCH/DELETE/HEAD/OPTIONS saved | Pass |
 | SVC-F06 | Interval select | 60/300/600/900/1800/3600 saved; default follows Settings default (invalid default falls back to 5 min) | Todo |
 | SVC-F07 | Request tab: query rows | Add/remove rows, values encoded | Todo |
-| SVC-F08 | Request tab: headers | Presets (Tom Select grouped), custom header, template apply keeps existing rows | Todo |
+| SVC-F08 | Request tab: headers | Presets (Tom Select grouped), custom header, template apply keeps existing rows | Pass |
 | SVC-F09 | Sensitive header | Value masked, blank on edit keeps stored | Todo |
-| SVC-F10 | Body types none/json/form/urlencoded/raw | JSON validated (Monaco/textarea); invalid JSON error | Todo |
-| SVC-F11 | Auth types none/bearer/basic/api_key/custom | Correct sub-fields; secrets never prefilled; blank keeps | Todo |
-| SVC-F12 | Assertions: expected statuses | `200,204`; empty invalid | Todo |
+| SVC-F10 | Body types none/json/form/urlencoded/raw | JSON validated (Monaco/textarea); invalid JSON error | Pass |
+| SVC-F11 | Auth types none/bearer/basic/api_key/custom | Correct sub-fields; secrets never prefilled; blank keeps | Pass |
+| SVC-F12 | Assertions: expected statuses | `200,204`; empty invalid | Pass |
 | SVC-F13 | Assertions: warn/fail ms | `fail >= warn` enforced | Todo |
-| SVC-F14 | Assertions: body contains/not/equals/regex | Row add/remove; regex `(a+)+b` cannot hang worker (SafeRegex) | Todo |
-| SVC-F15 | Assertions: JSON path/operator | `$.` prefix required; 9 operators | Todo |
+| SVC-F14 | Assertions: body contains/not/equals/regex | Row add/remove; regex `(a+)+b` cannot hang worker (SafeRegex) | Pass |
+| SVC-F15 | Assertions: JSON path/operator | `$.` prefix required; 9 operators | Pass |
 | SVC-F16 | Assertions: header | operator list | Todo |
 | SVC-F17 | Advanced: timeout, connect timeout | `connect <= timeout`, 1–60 | Todo |
 | SVC-F18 | Advanced: redirects, max redirects, verify SSL, HTTP version, UA | Saved and honoured by check | Todo |
-| SVC-F19 | Advanced: thresholds, min failed checks, notify switches | Persist (BUG-01 regression) | Todo |
+| SVC-F19 | Advanced: thresholds, min failed checks, notify switches | Persist (BUG-01 regression) | Pass |
 | SVC-F20 | Active / Public switches | Public off → hidden everywhere on public side | Todo |
 | SVC-F21 | Test request modal (unsaved) | Modal opens with result table: method/url, HTTP, result badge, timings, final URL, size, assertions | Pass |
-| SVC-F22 | Test again | Re-runs | Todo |
-| SVC-F23 | Test with bad config | 422 → "Validation failed" list, no crash | Todo |
+| SVC-F22 | Test again | Re-runs | Pass |
+| SVC-F23 | Test with bad config | 422 → "Validation failed" list, no crash | Pass |
 | SVC-F24 | Test throttle | 11 rapid tests | 429 after 10/min | Todo |
 | SVC-F25 | Cancel link | Returns to list, nothing saved | Todo |
 | SVC-F26 | Edit prefill | All tabs prefilled; secrets blank | Pass |
@@ -176,8 +176,8 @@ Fixtures created by the seed step of this plan (create them once, reuse):
 |---|---|---|---|
 | MNT-01 | Create form fields | Title, description, start/end (datetime-local), services checkboxes | Pass |
 | MNT-02 | Validation | end before start; no service selected | Todo |
-| MNT-03 | Schedule future window | Blue card on public page; status Scheduled | Todo |
-| MNT-04 | Active window | Set start = now−1 min → `dispatch-due` → Active; affected service shows "Scheduled Maintenance", check result Maintenance, no incident/mail | Todo |
+| MNT-03 | Schedule future window | Blue card on public page; status Scheduled | Pass |
+| MNT-04 | Active window | Set start = now−1 min → `dispatch-due` → Active; affected service shows "Scheduled Maintenance", check result Maintenance, no incident/mail | Pass |
 | MNT-05 | Window ends | Completed; service returns to Operational on next check; ended event | Todo |
 | MNT-06 | Expired-unsynced window | Scheduler down past end → Completed on next sync | Todo |
 | MNT-07 | Cancel | Status Cancelled, disappears from public | Todo |
@@ -217,11 +217,11 @@ Fixtures created by the seed step of this plan (create them once, reuse):
 | ID | Tab | Function | Expected | Status |
 |---|---|---|---|---|
 | SET-01 | General | Save app name/tagline/description | Public page + emails follow; `app_name` max 100 | Todo |
-| SET-02 | General | Timezone dropdown (grouped) | Absolute times shift on public/admin pages; invalid rejected | Todo |
+| SET-02 | General | Timezone dropdown (grouped) | Absolute times shift on public/admin pages; invalid rejected | Pass |
 | SET-03 | General | Admin prefix change | Admin moves after cache clear; login redirect follows; revert afterwards | Todo |
 | SET-04 | Branding | Upload PNG logo, dark logo, favicon | Preview, appears in header (light/dark), favicon | Todo |
 | SET-05 | Branding | Upload clean SVG | Stored sanitised | Todo |
-| SET-06 | Branding | Upload malicious SVG (script, `onload`, `javascript:` href, DOCTYPE/entity) | Sanitised or rejected with message; old logo kept when rejected | Todo |
+| SET-06 | Branding | Upload malicious SVG (script, `onload`, `javascript:` href, DOCTYPE/entity) | Sanitised or rejected with message; old logo kept when rejected | Pass |
 | SET-07 | Branding | Remove image | File deleted, setting cleared | Todo |
 | SET-08 | Branding | Footer text | Rendered in public footer | Todo |
 | SET-09 | Monitoring | Default interval/timeout/connect timeout | New service form uses them; connect > timeout rejected | Todo |
@@ -259,7 +259,7 @@ Fixtures created by the seed step of this plan (create them once, reuse):
 | PUB-02 | Groups and rows | Group names, per-service badge, "checked x ago" | Pass |
 | PUB-03 | 90-day bars | One bar per day, tooltips date/%/counts; scroll on mobile | Todo |
 | PUB-04 | Active incidents card | Red card, link to incident | Pass |
-| PUB-05 | Maintenance card | Blue card with window | Todo |
+| PUB-05 | Maintenance card | Blue card with window | Pass |
 | PUB-06 | Private service hidden | Never on home | Pass |
 | PUB-07 | Live refresh | After a check, badge updates within refresh interval with no reload; text injected safely (BUG-B5) | Todo |
 | PUB-08 | Server time | Shown in configured timezone | Todo |
@@ -321,7 +321,7 @@ Fixtures created by the seed step of this plan (create them once, reuse):
 | XC-02 | Roles: status-manager | All except Settings and Audit | Todo |
 | XC-03 | Roles: status-viewer | Read-only: no create/edit/delete/check buttons, POSTs 403 | Pass |
 | XC-04 | Dark mode all admin pages | No unreadable text; charts/Monaco follow | Pass (public home + service page; admin pages still to sweep) |
-| XC-05 | Mobile 375 px | Sidebar collapses, tables scroll inside cards, no page-level horizontal scroll, modals fit | Todo |
+| XC-05 | Mobile 375 px | Sidebar collapses, tables scroll inside cards, no page-level horizontal scroll, modals fit | Pass |
 | XC-06 | Tablet 768 px | Todo |
 | XC-07 | Keyboard | Tab order in forms, Esc closes modal, Enter submits | Todo |
 | XC-08 | Console clean | No errors on any page listed above | Pass so far |
@@ -343,9 +343,13 @@ Fixtures created by the seed step of this plan (create them once, reuse):
 | BUG-B4 | Service show page Test button | Used `window.bootstrap` (undefined: Tabler bundles its own) → modal never opened | `data-bs-toggle="modal"` trigger | SVC-S04 |
 | BUG-B5 | `status-page.js` live refresh | Status text injected via `innerHTML` (XSS from API value) | DOM nodes + `textContent` | PUB-07, code review |
 | BUG-B6 | Regex assertions | User regex could catastrophically backtrack and stall a worker | `SafeRegex` (JIT off, backtrack cap) | `SafeRegexTest` |
+| BUG-B8 | Maintenance form | `datetime-local` value was stored as UTC regardless of the configured display timezone, so with timezone Asia/Dhaka a window entered as 14:00 became 14:00 UTC (= 20:00 Dhaka) and started 6 h late; index page showed raw UTC | `setting_input_to_utc()` on save, `setting_utc_to_input()` on edit, `setting_time()` on the list, timezone hint under the field | `AdminSmokeTest::test_maintenance_times_are_entered_in_the_display_timezone`; browser: window activated on `dispatch-due`, service showed Scheduled Maintenance, public card time correct |
+| BUG-B9 | SVG sanitizer | `<a>` wrapper dropped with its children → logos wrapped in links became empty | Unwrap `a`/`switch`, keep sanitised children | `SvgSanitizerTest::test_anchor_wrappers_keep_their_shapes` |
 | BUG-B7 | Migrations | `status_daily_stats.date`, `status_audit_logs.created_at` unindexed for retention deletes | New migration | `migrate:fresh` clean |
 
 Phase 2 (2026-09-30, same day): viewer role verified in browser (write buttons hidden, Settings/Audit/Notifications absent from menu, POST check/pause/delete and settings/audit/channels all 403); private-service incident 404 on page and absent from `/api/status/incidents` and home; XSS probe service name `"><img src=x onerror=...>` escaped on public home, admin list, show and edit (no `window.__xss`); dark mode persists and charts follow it on public pages.
+
+Phase 3 (same day): login throttle returns 429 on the 6th wrong attempt; maintenance window created in Asia/Dhaka activates and forces Maintenance state with no false alarm; SVG upload via browser: script/onload/javascript:/foreignObject stripped, XXE upload rejected and previous logo kept; request builder POST + JSON body + bearer + custom header + JSON assertion + body assertion passes against httpbin and reports expected/actual on a failing assertion; saved secrets are masked on edit; 375 px iframe sweep of 21 public/admin pages shows no page-level horizontal overflow (window resize is not honoured by this browser, so an iframe was used).
 
 Execution log for phase 1 (2026-09-30): logged in, created group/service via UI, Test request modal (unsaved and saved),
 Mailpit SMTP test email, subscribe → verify → unsubscribe (confirm page), channel + 4 rules, failing service →

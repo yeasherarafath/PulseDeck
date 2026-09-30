@@ -23,12 +23,13 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label required" for="m-start">Starts at</label>
-                        <input type="datetime-local" class="form-control @error('starts_at') is-invalid @enderror" id="m-start" name="starts_at" value="{{ old('starts_at', isset($maintenance) ? $maintenance->starts_at->format('Y-m-d\TH:i') : '') }}" required />
+                        <input type="datetime-local" class="form-control @error('starts_at') is-invalid @enderror" id="m-start" name="starts_at" value="{{ old('starts_at', isset($maintenance) ? setting_utc_to_input($maintenance->starts_at) : '') }}" required />
+                        <div class="form-hint">Times are in {{ setting_timezone() }}.</div>
                         @error('starts_at')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-6">
                         <label class="form-label required" for="m-end">Ends at</label>
-                        <input type="datetime-local" class="form-control @error('ends_at') is-invalid @enderror" id="m-end" name="ends_at" value="{{ old('ends_at', isset($maintenance) ? $maintenance->ends_at->format('Y-m-d\TH:i') : '') }}" required />
+                        <input type="datetime-local" class="form-control @error('ends_at') is-invalid @enderror" id="m-end" name="ends_at" value="{{ old('ends_at', isset($maintenance) ? setting_utc_to_input($maintenance->ends_at) : '') }}" required />
                         @error('ends_at')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-12">

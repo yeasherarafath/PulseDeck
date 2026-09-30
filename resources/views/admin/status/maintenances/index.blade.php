@@ -31,7 +31,7 @@
                         <tr>
                             <td>{{ $maintenance->title }}</td>
                             <td>{{ $maintenance->services->pluck('name')->join(', ') }}</td>
-                            <td class="text-nowrap">{{ $maintenance->starts_at->format('M j, H:i') }} – {{ $maintenance->ends_at->format('M j, H:i') }}</td>
+                            <td class="text-nowrap">{{ setting_time($maintenance->starts_at) }} – {{ setting_time($maintenance->ends_at) }}</td>
                             <td class="text-nowrap"><x-status-badge :status="$maintenance->status" /></td>
                             <td class="text-end">
                                 <div class="btn-list">

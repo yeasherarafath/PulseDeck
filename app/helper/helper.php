@@ -99,3 +99,24 @@ if (! function_exists('branding_asset')) {
         return asset('storage/'.ltrim($path, '/'));
     }
 }
+
+if (! function_exists('setting_input_to_utc')) {
+    /**
+     * Interpret a datetime-local form value in the configured display
+     * timezone and convert it to the app (UTC) timezone for storage.
+     */
+    function setting_input_to_utc(string $value): Carbon\Carbon
+    {
+        return Carbon\Carbon::parse($value, setting_timezone())->utc();
+    }
+}
+
+if (! function_exists('setting_utc_to_input')) {
+    /**
+     * Format a stored timestamp as a datetime-local value in the display timezone.
+     */
+    function setting_utc_to_input(DateTimeInterface|string|null $value): string
+    {
+        return (string) setting_time($value, 'Y-m-d\TH:i');
+    }
+}
