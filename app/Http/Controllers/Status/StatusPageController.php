@@ -80,6 +80,7 @@ class StatusPageController extends Controller
             'status' => $payload['status'],
             'status_label' => $payload['status_label'],
             'updated_at' => $payload['updated_at'],
+            'updated_human' => $payload['updated_human'],
             'server_time' => $payload['server_time'],
             'services' => $services,
         ]);

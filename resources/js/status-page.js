@@ -59,6 +59,12 @@ function initPolling(root) {
                 serverTime.textContent = data.server_time;
             }
 
+            const updated = document.getElementById('overall-updated');
+
+            if (updated && data.updated_human) {
+                updated.textContent = data.updated_human;
+            }
+
             const dot = document.querySelector('#overall-dot .status-dot');
 
             if (dot) {

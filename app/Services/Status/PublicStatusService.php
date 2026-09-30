@@ -128,6 +128,11 @@ class PublicStatusService
 
         $overall = $this->overallStatus($statuses->all());
 
+        // "Last updated" means last time a public service was actually
+        // checked — not when this cached payload was built (which would
+        // always read "0 seconds ago").
+        $latestCheck = $services->pluck('last_checked_at')->filter()->max();
+
         $window = (int) StatusSetting::get('uptime_window_days', 90);
 
         $groupRows = [];
@@ -162,8 +167,8 @@ class PublicStatusService
         return [
             'status' => $overall->value,
             'status_label' => $this->overallLabel($overall),
-            'updated_at' => now()->toIso8601String(),
-            'updated_human' => now()->diffForHumans(),
+            'updated_at' => $latestCheck?->toIso8601String() ?? now()->toIso8601String(),
+            'updated_human' => $latestCheck?->diffForHumans() ?? 'never',
             'server_time' => setting_time(now(), 'M j, Y H:i').' '.setting_timezone(),
             'server_tz' => setting_timezone(),
             'groups' => $groupRows,
