@@ -111,3 +111,36 @@
 
 Telegram / Discord / Slack channels · SLA reports · TCP / DNS / Ping / SSL-expiry monitors
 behind a `MonitorChecker` interface · multi-page / multi-tenant support.
+
+## 11. Under-the-hood craft (shipped, easy to miss)
+
+- **Honest data, calm page** — failed check rows are always recorded, but the
+  public status flip waits for N consecutive failures; warning-only assertions
+  yield Degraded instead of failure.
+- **One recovery, one mail** — an auto-resolved incident suppresses the duplicate
+  service-recovered notification; degraded fires only on Operational → Degraded.
+- **SSRF guard depth** — every redirect hop re-validated, all A/AAAA records
+  resolved, `CURLOPT_RESOLVE` pinning against DNS rebinding, localhost blocked.
+  Webhook targets pass the same guard.
+- **ReDoS-safe patterns** — user regexes run under capped backtracking with JIT
+  off, limits restored afterwards.
+- **SVG sanitising** — XXE/ENTITY rejection, no network fetches, element
+  allowlist, `javascript:`/`data:` URLs blocked; unsafe uploads are rejected and
+  the old logo kept.
+- **Checks never crash the worker** — invalid stored configs become a visible
+  failed check; per-service locks prevent overlapping runs; jobs retry with
+  backoff.
+- **Cache discipline** — public payload cached ~30 s and flushed only on
+  visitor-visible changes, so per-check bookkeeping never causes cache storms.
+- **Readable failures** — curl errors classified into DNS / TLS / timeout causes,
+  app paths stripped, messages length-capped.
+- **Scanner-safe subscriptions** — unsubscribe needs POST (GET only renders the
+  confirmation); one-time verify tokens vs persistent per-recipient unsubscribe
+  tokens; private services never email public subscribers.
+- **In-app API docs** — cURL / JS / PHP / Python samples, copy buttons, and a
+  live Try-it showing HTTP status and timing.
+- **Branded error pages** — 403/404/429/500 render a friendly page with a
+  "Take me to status page" action instead of framework defaults.
+- **Scheduler resilience** — bad cron expressions fall back to interval math
+  instead of bricking dispatch; 10 cron + 11 interval presets with next-run
+  preview and stale-grace detection.

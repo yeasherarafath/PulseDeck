@@ -47,6 +47,9 @@
 - [ ] SLA reports + multi-page / multi-tenant support (see `features.md` §10).
 - [ ] Private status pages (password / SSO / IP allowlist).
 - [ ] 2FA for admins.
+- [ ] Artisan command to create a super-admin account (e.g. `status:create-admin`),
+      replacing the tinker one-liners in `README.md` — no click-to-create-admin UI
+      by design, command-line only.
 - [ ] Public-page i18n (no `lang/` directory yet).
 - [ ] On-call schedules + escalation chains (later — a second product, after the above).
 - [ ] Per-service cron timezone override (currently uses Settings → General timezone).
