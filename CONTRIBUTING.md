@@ -30,8 +30,10 @@ composer run dev   # web + queue worker + scheduler
 4. Run the checks (see below) before pushing.
 5. Open a PR describing **what** changed and **why**. Link related issues / todo items.
 
-Commit messages use the imperative mood, matching history: `Add …`, `Fix …`,
-`Refactor …`, `Document …`.
+Commit messages follow `<type>(<scope>): <short description>` (e.g. `feat(status): add
+push monitors`, `fix(public): correct last-updated time`). Types: `feat`, `fix`,
+`docs`, `refactor`, `test`, `chore`; scope is the area touched; description is
+imperative, lowercase, no trailing period.
 
 ## Checks (must pass)
 
