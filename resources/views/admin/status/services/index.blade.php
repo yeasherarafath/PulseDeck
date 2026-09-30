@@ -80,7 +80,7 @@
                             <td class="text-nowrap"><x-status-badge :status="$service->current_status" /></td>
                             <td>{{ $latest?->response_time !== null ? $latest->response_time.' ms' : '—' }}</td>
                             <td class="text-nowrap">{{ $service->last_checked_at?->diffForHumans() ?? 'never' }}</td>
-                            <td>{{ $service->check_interval >= 3600 ? ($service->check_interval / 3600).'h' : ($service->check_interval / 60).'m' }}</td>
+                            <td class="text-nowrap" title="{{ $service->scheduleSummary() }}">{{ $service->schedule_type?->value === 'cron' ? 'cron' : ($service->check_interval >= 3600 ? ($service->check_interval / 3600).'h' : ($service->check_interval / 60).'m') }}</td>
                             <td>
                                 @if ($service->is_active)
                                     <span class="badge bg-green-lt">Active</span>

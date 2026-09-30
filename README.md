@@ -4,7 +4,8 @@
 > and APIs around the clock and shows a clean public page: **“All Systems Operational”** —
 > or exactly what’s broken, with history to prove it.
 >
-> Full capability list: [`features.md`](features.md).
+> Live demo: [https://status.newisty.com/](https://status.newisty.com/)
+> · Full capability list: [`features.md`](features.md).
 
 ---
 
@@ -102,8 +103,24 @@ an empty `database/database.sqlite` file.
 ```bash
 php artisan migrate
 php artisan db:seed
-php artisan storage:link   # required: makes uploaded logos/favicons visible
+php artisan storage:link   # required: exposes uploaded logos/favicons (see "Storage link" below)
 ```
+
+#### Storage link (uploads)
+
+Uploaded branding (logo, dark-mode logo, favicon, social image) is stored on the
+`public` disk (`storage/app/public`) and served via `public/storage`. That
+symlink does not exist on a fresh clone, so create it once per environment:
+
+```bash
+php artisan storage:link
+```
+
+Verify it worked: `public/storage` should now be a symlink to
+`../storage/app/public`. If logos upload fine in Settings → Branding but never
+render (404), re-run the command and confirm your web server follows symlinks.
+On production deploys that rebuild the directory, re-create the link on every
+deploy.
 
 Seeding installs: roles & permissions, a local admin login (see below), header
 presets/templates for the request builder, and every default in Settings.

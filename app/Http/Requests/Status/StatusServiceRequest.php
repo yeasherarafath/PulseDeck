@@ -7,8 +7,11 @@ use App\Enums\Status\AuthType;
 use App\Enums\Status\BodyAssertionType;
 use App\Enums\Status\HttpMethod;
 use App\Enums\Status\HttpVersion;
+use App\Enums\Status\IntervalUnit;
 use App\Enums\Status\RequestBodyType;
+use App\Enums\Status\ScheduleType;
 use App\Rules\AllowedMonitorUrl;
+use App\Services\Status\CheckScheduler;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -36,7 +39,11 @@ class StatusServiceRequest extends FormRequest
             'group_id' => ['nullable', 'exists:status_service_groups,id'],
             'url' => ['required', 'url', 'max:2048', new AllowedMonitorUrl],
             'method' => ['required', Rule::in(array_column(HttpMethod::cases(), 'value'))],
-            'check_interval' => ['required', 'integer', 'min:60', 'max:86400'],
+            'schedule_type' => ['sometimes', Rule::in(array_column(ScheduleType::cases(), 'value'))],
+            'check_interval' => ['sometimes', 'integer', 'min:'.CheckScheduler::MIN_SECONDS, 'max:'.CheckScheduler::MAX_SECONDS],
+            'interval_value' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:1000000'],
+            'interval_unit' => ['sometimes', Rule::in(array_column(IntervalUnit::cases(), 'value'))],
+            'cron_expression' => ['sometimes', 'nullable', 'string', 'max:100'],
             'timeout' => ['required', 'integer', 'min:1', 'max:60'],
             'connect_timeout' => ['required', 'integer', 'min:1', 'max:60', 'lte:timeout'],
             'failure_threshold' => ['nullable', 'integer', 'min:1', 'max:100'],
@@ -96,8 +103,80 @@ class StatusServiceRequest extends FormRequest
         ];
     }
 
+    /**
+     * @return array<string, array<int, callable|string>>
+     */
+    public function after(): array
+    {
+        return [
+            function ($validator): void {
+                $this->validateSchedule($validator);
+            },
+        ];
+    }
+
+    private function validateSchedule($validator): void
+    {
+        $type = (string) ($this->input('schedule_type') ?? 'interval');
+
+        if ($type === ScheduleType::Cron->value) {
+            $expression = trim((string) ($this->input('cron_expression') ?? ''));
+
+            if ($expression === '') {
+                $validator->errors()->add('cron_expression', 'A cron expression is required for cron scheduling.');
+            } elseif (! CheckScheduler::isValidCron($expression)) {
+                $validator->errors()->add('cron_expression', 'The cron expression must be a valid 5-part expression (e.g. `*/5 * * * *`).');
+            }
+
+            return;
+        }
+
+        // Interval mode: resolve value + unit (new UI) or legacy check_interval
+        // (API, tests, old payloads) and enforce the global 60s–30d window.
+        $value = $this->input('interval_value');
+        $unit = IntervalUnit::tryFrom((string) ($this->input('interval_unit') ?? 'minutes'));
+
+        if ($value !== null && $unit !== null) {
+            $seconds = ((int) $value) * $unit->seconds();
+
+            if ($seconds < CheckScheduler::MIN_SECONDS) {
+                $validator->errors()->add('interval_value', 'The interval must be at least 1 minute (the dispatcher ticks every minute).');
+            } elseif ($seconds > CheckScheduler::MAX_SECONDS) {
+                $validator->errors()->add('interval_value', 'The interval may not exceed 1 year.');
+            }
+        } elseif ($this->input('check_interval') !== null) {
+            $seconds = (int) $this->input('check_interval');
+
+            if ($seconds < CheckScheduler::MIN_SECONDS || $seconds > CheckScheduler::MAX_SECONDS) {
+                $validator->errors()->add('check_interval', 'The check interval must be between 1 minute and 1 year.');
+            }
+        } else {
+            $validator->errors()->add('interval_value', 'An interval value is required for interval scheduling.');
+        }
+    }
+
     protected function prepareForValidation(): void
     {
+        // Backward compatibility: legacy payloads (API/tests) send only
+        // check_interval with no schedule fields. Expand them so the new
+        // interval UI validates without breaking existing callers.
+        if (! $this->has('schedule_type') && $this->has('check_interval')) {
+            $this->merge(['schedule_type' => ScheduleType::Interval->value]);
+        }
+
+        if ($this->has('check_interval') && ! $this->has('interval_value')) {
+            $split = CheckScheduler::fromSeconds((int) $this->input('check_interval', 300));
+
+            $this->merge([
+                'interval_value' => $split['value'],
+                'interval_unit' => $split['unit']->value,
+            ]);
+        }
+
+        if (! $this->has('schedule_type')) {
+            $this->merge(['schedule_type' => ScheduleType::Interval->value]);
+        }
+
         // Drop fully-blank repeatable rows so empty template rows never
         // trip validation (works for form posts and JSON test payloads).
         foreach (['headers', 'query', 'body_fields', 'body_assertions', 'json_assertions', 'header_assertions'] as $key) {

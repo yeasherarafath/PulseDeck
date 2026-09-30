@@ -63,7 +63,7 @@ class CheckService implements ShouldQueue
         }
 
         if (! $service->is_active && ! $this->manual) {
-            $service->forceFill(['next_check_at' => now()->addSeconds($service->check_interval)])->save();
+            $service->forceFill(['next_check_at' => $service->calculateNextCheckAt()])->save();
 
             return;
         }

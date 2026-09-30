@@ -6,6 +6,7 @@ use App\Enums\Status\ServiceStatus;
 use App\Jobs\Status\CheckService;
 use App\Models\Status\StatusService;
 use App\Models\Status\StatusSetting;
+use App\Services\Status\CheckScheduler;
 use App\Services\Status\MaintenanceManager;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
@@ -51,13 +52,14 @@ class DispatchDueChecks extends Command
     {
         $multiplier = max(1, (int) StatusSetting::get('stale_after_multiplier', 3));
         $stale = 0;
+        $scheduler = app(CheckScheduler::class);
 
         StatusService::active()
             ->where('current_status', '!=', ServiceStatus::Unknown->value)
             ->whereNotNull('last_checked_at')
-            ->chunkById(100, function ($services) use ($multiplier, &$stale): void {
+            ->chunkById(100, function ($services) use ($scheduler, $multiplier, &$stale): void {
                 foreach ($services as $service) {
-                    $grace = max(60, $service->check_interval) * $multiplier;
+                    $grace = $scheduler->staleGraceSeconds($service, $multiplier);
 
                     if ($service->last_checked_at->lt(now()->subSeconds($grace))) {
                         $service->forceFill(['current_status' => ServiceStatus::Unknown])->save();

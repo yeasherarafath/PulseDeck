@@ -12,6 +12,7 @@ if (form) {
     initAuthPanels();
     initBodyVisibility();
     initTemplates();
+    initSchedule();
     initTestRequest();
 }
 
@@ -357,6 +358,117 @@ function initTemplates() {
     });
 }
 
+/* ---------- schedule (interval + cron) ---------- */
+
+function initSchedule() {
+    const typeRadios = form.querySelectorAll('[data-schedule-type-group] input, input[name="schedule_type"]');
+    const intervalPanel = form.querySelector('[data-schedule-panel="interval"]');
+    const cronPanel = form.querySelector('[data-schedule-panel="cron"]');
+    const valueInput = form.querySelector('#f-interval-value');
+    const unitSelect = form.querySelector('#f-interval-unit');
+    const intervalPreset = form.querySelector('#f-interval-preset');
+    const cronInput = form.querySelector('#f-cron');
+    const cronPreset = form.querySelector('#f-cron-preset');
+    const summary = form.querySelector('[data-interval-summary]');
+    const legacy = form.querySelector('[data-interval-legacy]');
+
+    if (!intervalPanel || !cronPanel) {
+        return;
+    }
+
+    const multipliers = { seconds: 1, minutes: 60, hours: 3600, days: 86400, weeks: 604800, months: 2592000, years: 31536000 };
+    const maxSeconds = 31536000;
+
+    const seconds = () => {
+        const value = Math.max(1, Number(valueInput?.value ?? 0) || 0);
+        return value * (multipliers[unitSelect?.value] ?? 60);
+    };
+
+    const humanize = (total) => {
+        const units = [['year', 31536000], ['month', 2592000], ['week', 604800], ['day', 86400], ['hour', 3600], ['minute', 60], ['second', 1]];
+        for (const [noun, size] of units) {
+            if (total % size === 0) {
+                const value = total / size;
+                return `${value} ${noun}${value === 1 ? '' : 's'}`;
+            }
+        }
+        return `${total} seconds`;
+    };
+
+    const sync = () => {
+        const active = form.querySelector('input[name="schedule_type"]:checked')?.value ?? 'interval';
+        intervalPanel.classList.toggle('d-none', active !== 'interval');
+        cronPanel.classList.toggle('d-none', active !== 'cron');
+
+        const raw = seconds();
+        const total = Math.min(maxSeconds, Math.max(60, raw));
+        if (legacy) {
+            legacy.value = String(total);
+        }
+
+        if (summary) {
+            if (raw < 60) {
+                summary.textContent = `Every ${humanize(raw)} — below the 1-minute minimum, will run every 1 minute.`;
+            } else if (raw > maxSeconds) {
+                summary.textContent = `Every ${humanize(raw)} — above the 1-year maximum, will run every 1 year.`;
+            } else if (total >= 86400) {
+                summary.textContent = `Runs every ${humanize(total)} (${total.toLocaleString()}s).`;
+            } else {
+                const perDay = (86400 / total).toFixed(1);
+                summary.textContent = `Runs every ${humanize(total)} (${total.toLocaleString()}s) • ~${perDay} checks/day.`;
+            }
+        }
+
+        intervalPreset && syncPreset(intervalPreset, String(total));
+    };
+
+    const syncPreset = (select, total) => {
+        if ([...select.options].some((option) => option.value === total)) {
+            select.value = total;
+        } else {
+            select.value = '';
+        }
+    };
+
+    typeRadios.forEach((radio) => radio.addEventListener('change', sync));
+    valueInput?.addEventListener('input', sync);
+    unitSelect?.addEventListener('change', sync);
+
+    intervalPreset?.addEventListener('change', () => {
+        if (!intervalPreset.value) {
+            return;
+        }
+        const total = Number(intervalPreset.value);
+        const units = [['years', 31536000], ['months', 2592000], ['weeks', 604800], ['days', 86400], ['hours', 3600], ['minutes', 60], ['seconds', 1]];
+        for (const [unit, size] of units) {
+            if (total % size === 0 && valueInput && unitSelect) {
+                valueInput.value = String(total / size);
+                unitSelect.value = unit;
+                break;
+            }
+        }
+        sync();
+    });
+
+    cronPreset?.addEventListener('change', () => {
+        if (cronInput && cronPreset.value) {
+            cronInput.value = cronPreset.value;
+        }
+    });
+
+    cronInput?.addEventListener('input', () => {
+        if (!cronPreset) {
+            return;
+        }
+        const match = [...cronPreset.options].some((option) => option.value === cronInput.value.trim());
+        if (!match) {
+            cronPreset.value = '';
+        }
+    });
+
+    sync();
+}
+
 /* ---------- test request ---------- */
 
 function initTestRequest() {
@@ -455,7 +567,11 @@ function buildPayload() {
         group_id: data.get('group_id') || null,
         url: data.get('url') ?? '',
         method: data.get('method') ?? 'GET',
+        schedule_type: form.querySelector('input[name="schedule_type"]:checked')?.value ?? 'interval',
         check_interval: Number(data.get('check_interval') ?? 300),
+        interval_value: Number(data.get('interval_value') ?? 5),
+        interval_unit: data.get('interval_unit') ?? 'minutes',
+        cron_expression: data.get('cron_expression') ?? '',
         timeout: Number(data.get('timeout') ?? 15),
         connect_timeout: Number(data.get('connect_timeout') ?? 5),
         follow_redirects: checked('follow_redirects'),

@@ -5,10 +5,14 @@
     use App\Enums\Status\CheckInterval;
     use App\Enums\Status\HttpMethod;
     use App\Enums\Status\HttpVersion;
+    use App\Enums\Status\IntervalUnit;
     use App\Enums\Status\RequestBodyType;
+    use App\Enums\Status\ScheduleType;
+    use App\Services\Status\CheckScheduler;
 
     $authType = old('auth.type', $authData['type'] ?? 'none');
     $bodyType = old('body_type', $service?->request_body_type?->value ?? 'none');
+    $scheduleType = $scheduleType ?? old('schedule_type', 'interval');
 @endphp
 
 @if ($errors->any())
@@ -79,13 +83,74 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label required" for="f-interval">Check interval</label>
-                            <select class="form-select" id="f-interval" name="check_interval">
-                                @foreach (CheckInterval::cases() as $interval)
-                                    <option value="{{ $interval->value }}" @selected((int) old('check_interval', $service?->check_interval ?? (CheckInterval::tryFrom((int) setting('default_check_interval', 300))?->value ?? 300)) === $interval->value)>{{ $interval->label() }}</option>
+                        <div class="col-12">
+                            <label class="form-label required">Check schedule</label>
+                            <div class="btn-group w-100" role="group" aria-label="Schedule type" data-schedule-type-group>
+                                @foreach (ScheduleType::cases() as $type)
+                                    <input type="radio" class="btn-check" name="schedule_type" id="schedule-{{ $type->value }}" value="{{ $type->value }}" @checked($scheduleType === $type->value) autocomplete="off" />
+                                    <label class="btn btn-outline-primary" for="schedule-{{ $type->value }}">{{ $type->label() }}</label>
                                 @endforeach
-                            </select>
+                            </div>
+                            <div class="form-hint">Fixed interval runs every N minutes/hours/days/weeks/months/years. Cron runs on a 5-part schedule (dispatcher ticks every minute).</div>
+                        </div>
+                        <div class="col-12" data-schedule-panel="interval">
+                            <div class="card card-body bg-light">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-md-4">
+                                        <label class="form-label required" for="f-interval-value">Every</label>
+                                        <input type="number" class="form-control @error('interval_value') is-invalid @enderror @error('check_interval') is-invalid @enderror" id="f-interval-value" name="interval_value" value="{{ $intervalValue ?? old('interval_value', 5) }}" min="1" max="1000000" required />
+                                        @error('interval_value')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                        @error('check_interval')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label required" for="f-interval-unit">Unit</label>
+                                        <select class="form-select" id="f-interval-unit" name="interval_unit">
+                                            @foreach (IntervalUnit::cases() as $unit)
+                                                <option value="{{ $unit->value }}" @selected(($intervalUnit ?? old('interval_unit', 'minutes')) === $unit->value)>{{ $unit->label() }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label" for="f-interval-preset">Preset</label>
+                                        <select class="form-select" id="f-interval-preset">
+                                            <option value="">Custom…</option>
+                                            @foreach (CheckScheduler::intervalPresets() as $preset)
+                                                <option value="{{ $preset['seconds'] }}">Every {{ $preset['label'] }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-hint mt-2" data-interval-summary></div>
+                                <input type="hidden" name="check_interval" value="{{ old('check_interval', $service?->check_interval ?? setting('default_check_interval', 300)) }}" data-interval-legacy />
+                            </div>
+                        </div>
+                        <div class="col-12 d-none" data-schedule-panel="cron">
+                            <div class="card card-body bg-light">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-md-6">
+                                        <label class="form-label required" for="f-cron">Cron expression</label>
+                                        <input type="text" class="form-control font-monospace @error('cron_expression') is-invalid @enderror" id="f-cron" name="cron_expression" value="{{ $cronExpression ?? old('cron_expression', '') }}" placeholder="*/5 * * * *" spellcheck="false" autocomplete="off" />
+                                        @error('cron_expression')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="f-cron-preset">Preset</label>
+                                        <select class="form-select" id="f-cron-preset">
+                                            <option value="">Custom…</option>
+                                            @foreach (CheckScheduler::cronPresets() as $expression => $label)
+                                                <option value="{{ $expression }}">{{ $label }} — <span class="font-monospace">{{ $expression }}</span></option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-hint mt-2">
+                                    5 parts: <code>minute hour day(month) month day(week)</code> — e.g. <code>*/5 * * * *</code> (every 5 min),
+                                    <code>0 9 * * 1-5</code> (weekdays 09:00). Times run in <strong>{{ setting('timezone', 'UTC') }}</strong>.
+                                    <a href="https://crontab.guru/" target="_blank" rel="noopener">Cron helper ↗</a>
+                                    @if (!empty($cronNextRun))
+                                        <br />Next run: <strong>{{ $cronNextRun->setTimezone(setting_timezone())->format('M j, H:i T') }}</strong>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" for="f-sort">Sort order</label>

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin\Status;
 
-use App\Enums\Status\CheckInterval;
 use App\Enums\Status\SettingGroup;
 use App\Enums\Status\SettingType;
 use App\Http\Controllers\Controller;
@@ -104,7 +103,10 @@ class SettingsController extends Controller
         $rules['settings.raw_checks_retention_days'][] = 'min:1';
         $rules['settings.daily_stats_retention_days'][] = 'min:1';
         $rules['settings.audit_retention_days'][] = 'min:1';
-        $rules['settings.default_check_interval'][] = 'in:'.implode(',', array_column(CheckInterval::cases(), 'value'));
+        // Free-form default (60s–1yr): presets live in CheckInterval, but
+        // admins may type any custom value — the service form validates it.
+        $rules['settings.default_check_interval'][] = 'min:60';
+        $rules['settings.default_check_interval'][] = 'max:31536000';
         $rules['settings.default_timeout'][] = 'min:1';
         $rules['settings.default_timeout'][] = 'max:60';
         $rules['settings.default_connect_timeout'][] = 'min:1';

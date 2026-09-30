@@ -49,6 +49,7 @@
                                 <th class="w-1">Status</th>
                                 <th>Last check</th>
                                 <th>Next check</th>
+                                <th>Schedule</th>
                                 <th>Response</th>
                                 <th>Last error</th>
                             </tr>
@@ -61,6 +62,7 @@
                                     <td class="text-nowrap"><x-status-badge :status="$service->current_status" /></td>
                                     <td class="text-nowrap">{{ $service->last_checked_at?->diffForHumans() ?? 'never' }}</td>
                                     <td class="text-nowrap">{{ $service->next_check_at?->diffForHumans() ?? '—' }}</td>
+                                    <td class="text-nowrap text-secondary">{{ $service->scheduleSummary() }}</td>
                                     <td>{{ $latest?->response_time !== null ? $latest->response_time.' ms' : '—' }}</td>
                                     <td class="text-secondary">{{ \Illuminate\Support\Str::limit($latest?->error_message ?? '', 80) }}</td>
                                 </tr>

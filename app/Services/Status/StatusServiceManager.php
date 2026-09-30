@@ -58,6 +58,12 @@ class StatusServiceManager
 
         $before = $this->auditable($service->getAttributes());
 
+        // A changed schedule takes effect immediately: re-queue the service
+        // instead of waiting out the old next_check_at.
+        if ($this->scheduleChanged($service, $attributes)) {
+            $attributes['next_check_at'] = now();
+        }
+
         $service->fill($attributes)->save();
 
         StatusAuditLog::record('service.updated', $service->fresh(), $before, $this->auditable($service->fresh()->getAttributes()));
@@ -204,6 +210,23 @@ class StatusServiceManager
         unset($attributes['request_headers'], $attributes['authentication'], $attributes['request_body']);
 
         return $attributes;
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private function scheduleChanged(StatusService $service, array $attributes): bool
+    {
+        foreach (['check_interval', 'schedule_type', 'cron_expression'] as $key) {
+            $old = $key === 'schedule_type' ? ($service->schedule_type?->value ?? 'interval') : $service->getAttribute($key);
+            $new = $attributes[$key] ?? null;
+
+            if ((string) ($old ?? '') !== (string) ($new ?? '')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function uniqueSlug(string $name): string

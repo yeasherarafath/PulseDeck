@@ -21,6 +21,8 @@ class StatusServiceFactory extends Factory
             'url' => 'https://example.com/'.$this->faker->slug(),
             'method' => 'GET',
             'check_interval' => 300,
+            'schedule_type' => 'interval',
+            'cron_expression' => null,
             'timeout' => 15,
             'connect_timeout' => 5,
             'follow_redirects' => true,

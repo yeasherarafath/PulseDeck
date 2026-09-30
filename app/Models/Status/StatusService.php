@@ -6,8 +6,11 @@ use App\Enums\Status\CheckResultStatus;
 use App\Enums\Status\HttpMethod;
 use App\Enums\Status\HttpVersion;
 use App\Enums\Status\RequestBodyType;
+use App\Enums\Status\ScheduleType;
 use App\Enums\Status\ServiceStatus;
+use App\Services\Status\CheckScheduler;
 use App\Services\Status\PublicStatusService;
+use Carbon\Carbon;
 use Database\Factories\StatusServiceFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -35,6 +38,8 @@ class StatusService extends Model
         'url',
         'method',
         'check_interval',
+        'schedule_type',
+        'cron_expression',
         'timeout',
         'connect_timeout',
         'follow_redirects',
@@ -73,6 +78,7 @@ class StatusService extends Model
     protected $attributes = [
         'method' => 'GET',
         'check_interval' => 300,
+        'schedule_type' => 'interval',
         'timeout' => 15,
         'connect_timeout' => 5,
         'follow_redirects' => true,
@@ -97,6 +103,7 @@ class StatusService extends Model
         return [
             'method' => HttpMethod::class,
             'check_interval' => 'integer',
+            'schedule_type' => ScheduleType::class,
             'timeout' => 'integer',
             'connect_timeout' => 'integer',
             'follow_redirects' => 'boolean',
@@ -206,12 +213,22 @@ class StatusService extends Model
         return $query->active()->where('next_check_at', '<=', now());
     }
 
+    public function calculateNextCheckAt(?Carbon $from = null): Carbon
+    {
+        return app(CheckScheduler::class)->nextRunAt($this, $from);
+    }
+
+    public function scheduleSummary(): string
+    {
+        return app(CheckScheduler::class)->describe($this);
+    }
+
     public function recordCheckResult(CheckResultStatus $result, ServiceStatus $status): void
     {
         $this->forceFill([
             'current_status' => $status,
             'last_checked_at' => now(),
-            'next_check_at' => now()->addSeconds($this->check_interval),
+            'next_check_at' => $this->calculateNextCheckAt(),
             'last_success_at' => $result === CheckResultStatus::Operational || $result === CheckResultStatus::Degraded
                 ? now()
                 : $this->last_success_at,

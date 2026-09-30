@@ -37,7 +37,7 @@
 
 ## 3. Services & request builder (admin)
 
-- Service CRUD with groups, check interval, timeouts, public/private visibility, sort order, pause/resume.
+- Service CRUD with groups, flexible schedules (fixed interval with custom count + unit — minutes to years — or 5-part cron expression with presets and next-run preview), timeouts, public/private visibility, sort order, pause/resume.
 - Tabbed request builder: General / Request / Auth / Assertions / Advanced.
 - Header presets & reusable templates; per-service expected status codes.
 - Per-service alert switches: notify on failure / notify on recovery.

@@ -5,7 +5,9 @@ namespace App\Services\Status;
 use App\Enums\Status\AuthType;
 use App\Enums\Status\HttpMethod;
 use App\Enums\Status\HttpVersion;
+use App\Enums\Status\IntervalUnit;
 use App\Enums\Status\RequestBodyType;
+use App\Enums\Status\ScheduleType;
 use App\Models\Status\StatusService;
 use App\Models\Status\StatusSetting;
 use InvalidArgumentException;
@@ -119,6 +121,8 @@ class RequestBuilder
             $statuses = explode(',', $statuses);
         }
 
+        $schedule = $this->normalizeSchedule($input);
+
         return [
             'group_id' => $input['group_id'] ?? null,
             'name' => $input['name'],
@@ -126,7 +130,9 @@ class RequestBuilder
             'description' => $input['description'] ?? null,
             'url' => $input['url'],
             'method' => strtoupper((string) ($input['method'] ?? 'GET')),
-            'check_interval' => (int) ($input['check_interval'] ?? StatusSetting::get('default_check_interval', 300)),
+            'check_interval' => $schedule['check_interval'],
+            'schedule_type' => $schedule['schedule_type'],
+            'cron_expression' => $schedule['cron_expression'],
             'timeout' => (int) ($input['timeout'] ?? StatusSetting::get('default_timeout', 15)),
             'connect_timeout' => (int) ($input['connect_timeout'] ?? StatusSetting::get('default_connect_timeout', 5)),
             'follow_redirects' => (bool) ($input['follow_redirects'] ?? false),
@@ -153,6 +159,52 @@ class RequestBuilder
             'min_failed_checks_down' => $this->nullableInt($input['min_failed_checks_down'] ?? null),
             'failure_threshold' => max(1, (int) ($input['failure_threshold'] ?? StatusSetting::get('failure_threshold', 3))),
             'recovery_threshold' => max(1, (int) ($input['recovery_threshold'] ?? StatusSetting::get('recovery_threshold', 2))),
+        ];
+    }
+
+    /**
+     * Resolve schedule fields from new UI input (schedule_type +
+     * interval_value/unit or cron_expression) with legacy fallback to
+     * check_interval, so old API payloads keep working.
+     *
+     * @param  array<string, mixed>  $input
+     * @return array{check_interval: int, schedule_type: string, cron_expression: ?string}
+     */
+    private function normalizeSchedule(array $input): array
+    {
+        $type = (string) ($input['schedule_type'] ?? ScheduleType::Interval->value);
+
+        if ($type === ScheduleType::Cron->value) {
+            $expression = trim((string) ($input['cron_expression'] ?? ''));
+
+            // check_interval is unused for dispatch in cron mode; keep a
+            // sane sentinel for stale math fallbacks and NOT NULL safety.
+            $fallback = isset($input['check_interval'])
+                ? max(CheckScheduler::MIN_SECONDS, min(CheckScheduler::MAX_SECONDS, (int) $input['check_interval']))
+                : 3600;
+
+            return [
+                'check_interval' => $fallback,
+                'schedule_type' => ScheduleType::Cron->value,
+                'cron_expression' => $expression !== '' ? $expression : null,
+            ];
+        }
+
+        $unit = IntervalUnit::tryFrom((string) ($input['interval_unit'] ?? 'minutes'));
+
+        if (isset($input['interval_value']) && $unit !== null) {
+            $seconds = CheckScheduler::toSeconds(max(1, (int) $input['interval_value']), $unit);
+        } else {
+            $seconds = max(
+                CheckScheduler::MIN_SECONDS,
+                min(CheckScheduler::MAX_SECONDS, (int) ($input['check_interval'] ?? StatusSetting::get('default_check_interval', 300)))
+            );
+        }
+
+        return [
+            'check_interval' => $seconds,
+            'schedule_type' => ScheduleType::Interval->value,
+            'cron_expression' => null,
         ];
     }
 

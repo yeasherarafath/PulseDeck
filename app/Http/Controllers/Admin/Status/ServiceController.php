@@ -7,6 +7,7 @@ use App\Http\Requests\Status\StatusServiceRequest;
 use App\Http\Requests\Status\TestServiceRequest;
 use App\Models\Status\StatusService;
 use App\Models\Status\StatusServiceGroup;
+use App\Services\Status\CheckScheduler;
 use App\Services\Status\HeaderPresetManager;
 use App\Services\Status\StatusServiceManager;
 use App\Services\Status\UptimeCalculator;
@@ -172,7 +173,18 @@ class ServiceController extends Controller
             $authData['headers'] = [['name' => '', 'value' => '']];
         }
 
+        $scheduleSplit = CheckScheduler::fromSeconds(
+            (int) ($service?->check_interval ?? setting('default_check_interval', 300))
+        );
+
         return [
+            'scheduleType' => $old('schedule_type', $service?->schedule_type?->value ?? 'interval'),
+            'intervalValue' => $old('interval_value', $scheduleSplit['value']),
+            'intervalUnit' => $old('interval_unit', $scheduleSplit['unit']->value),
+            'cronExpression' => $old('cron_expression', $service?->cron_expression ?? ''),
+            'cronNextRun' => $service && ($service->schedule_type?->value ?? 'interval') === 'cron' && trim((string) $service->cron_expression) !== ''
+                ? CheckScheduler::nextRunFromCron((string) $service->cron_expression)
+                : null,
             'service' => $service,
             'groups' => StatusServiceGroup::ordered()->get(),
             'presets' => $presets->groupedPresets(),
