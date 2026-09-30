@@ -146,7 +146,7 @@
                                                     <option value="{{ $preset->header_name }}"
                                                         data-input="{{ $preset->input_type }}"
                                                         data-sensitive="{{ $preset->is_sensitive ? '1' : '0' }}"
-                                                        data-options="{{ htmlspecialchars(json_encode($preset->options ?? []), ENT_QUOTES) }}"
+                                                        data-options="{{ json_encode($preset->options ?? []) }}"
                                                         @selected(($row['name'] ?? '') === $preset->header_name)>{{ $preset->header_name }}</option>
                                                 @endforeach
                                             </optgroup>

@@ -36,7 +36,12 @@ function initRows() {
                     el.value = '';
                 });
                 row.querySelectorAll('select').forEach((el) => {
-                    el.selectedIndex = 0;
+                    if (el.tomselect) {
+                        el.tomselect.clear();
+                    } else {
+                        el.selectedIndex = 0;
+                        el.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
                 });
             }
         }
@@ -64,20 +69,24 @@ function addRow(container, values = {}) {
     });
     row.removeAttribute('data-secret');
 
-    // Unwrap any Tom Select rendering so the clone gets a fresh instance.
-    const wrapper = row.querySelector('.ts-wrapper');
+    // Unwrap all Tom Select rendering (name + tag value) so the clone gets
+    // fresh instances. Destroy instances first to drop cloned dropdown DOM.
+    row.querySelectorAll('select').forEach((select) => {
+        select.tomselect?.destroy();
+    });
 
-    if (wrapper) {
+    row.querySelectorAll('.ts-wrapper').forEach((wrapper) => {
         const select = wrapper.querySelector('select');
 
         if (select) {
             select.classList.remove('tomselected', 'ts-hidden-accessible');
             select.removeAttribute('tabindex');
+            select.removeAttribute('style');
             wrapper.replaceWith(select);
         }
-    }
+    });
 
-    row.querySelectorAll('.ts-control, .ts-dropdown').forEach((el) => el.remove());
+    row.querySelectorAll('.ts-control, .ts-dropdown, .ts-dropdown-content').forEach((el) => el.remove());
 
     // Header value cells always restart as a plain text input.
     const valueWrap = row.querySelector('[data-header-value-wrap]');
@@ -90,7 +99,7 @@ function addRow(container, values = {}) {
     container.appendChild(row);
     reindex(container);
 
-    const nameSelect = row.querySelector('.js-header-name');
+    const nameSelect = row.querySelector('select.js-header-name');
 
     if (nameSelect) {
         enhanceHeaderSelect(nameSelect);
@@ -125,7 +134,26 @@ function applyRowValues(row, values) {
     Object.entries(values).forEach(([key, value]) => {
         const field = row.querySelector(`[name$="[${key}]"]`);
 
-        if (field) {
+        if (!field) {
+            return;
+        }
+
+        // TomSelect-enhanced header name selects keep their UI in the
+        // TomSelect instance: a native value assignment leaves the visible
+        // control showing the placeholder while the hidden select holds the
+        // right value (template Apply looked broken, saved correctly).
+        if (field.tomselect) {
+            const instance = field.tomselect;
+
+            if (value !== '' && !instance.options[value]) {
+                instance.addOption({ value, text: value });
+            }
+
+            instance.setValue(value ?? '');
+            // setValue triggers the instance 'change' handler (which rebuilds
+            // the value input); keep the native change for other listeners.
+            field.dispatchEvent(new Event('change', { bubbles: true }));
+        } else {
             field.value = value;
             field.dispatchEvent(new Event('change', { bubbles: true }));
         }
@@ -135,16 +163,26 @@ function applyRowValues(row, values) {
 /* ---------- header name selects ---------- */
 
 function initHeaderNames(scope) {
-    scope.querySelectorAll('.js-header-name').forEach(enhanceHeaderSelect);
+    // NOTE: qualify with `select.` — TomSelect copies the original classes
+    // onto its .ts-wrapper DIV, so a bare `.js-header-name` selector would
+    // also match the wrapper (which has no selectedOptions).
+    scope.querySelectorAll('select.js-header-name').forEach(enhanceHeaderSelect);
+    // Convert already-saved select-kind rows (e.g. Accept) to tag inputs on
+    // load while keeping their stored value.
+    scope.querySelectorAll('#header-rows [data-row] select.js-header-name').forEach((select) => {
+        if (select.value !== '') {
+            syncHeaderValueInput(select);
+        }
+    });
     scope.addEventListener('change', (event) => {
-        if (event.target.matches('.js-header-name')) {
+        if (event.target.matches('select.js-header-name')) {
             syncHeaderValueInput(event.target);
         }
     });
 }
 
 function enhanceHeaderSelect(select) {
-    if (select.tomselect || !window.TomSelect) {
+    if (!select || select.tagName !== 'SELECT' || select.tomselect || !window.TomSelect) {
         return;
     }
 
@@ -153,7 +191,25 @@ function enhanceHeaderSelect(select) {
     instance.on('change', () => syncHeaderValueInput(select));
 }
 
+function enhanceHeaderValueSelect(select) {
+    if (!select || select.tagName !== 'SELECT' || select.tomselect || !window.TomSelect) {
+        return null;
+    }
+
+    // Single-value tag: searchable predefined options, custom values allowed.
+    return new TomSelect(select, {
+        create: true,
+        maxItems: 1,
+        persist: false,
+        placeholder: 'Select or type a value…',
+    });
+}
+
 function syncHeaderValueInput(select) {
+    if (!select || select.tagName !== 'SELECT' || !select.selectedOptions) {
+        return;
+    }
+
     const row = select.closest('[data-row]');
     const wrap = row?.querySelector('[data-header-value-wrap]');
 
@@ -166,23 +222,55 @@ function syncHeaderValueInput(select) {
     const sensitive = option?.dataset.sensitive === '1';
     const currentName = (wrap.querySelector('input, select')?.getAttribute('name') ?? '').replace(/\[\d+\]/, ($0) => $0);
     const baseName = currentName || `${row.closest('[data-rows]').dataset.prefix}[0][value]`;
+    // Preserve the current value across the rebuild (template Apply sets the
+    // name first, then the value; reload must keep stored values).
+    const previousField = wrap.querySelector('input, select');
+    const previousValue = previousField?.tomselect?.getValue() ?? previousField?.value ?? '';
+
+    // Destroy any previous tag instance before replacing markup.
+    previousField?.tomselect?.destroy();
 
     if (kind === 'select') {
         let options = [];
 
         try {
-            options = JSON.parse(option.dataset.options ?? '[]');
+            options = JSON.parse(decodeOptions(option.dataset.options ?? '[]'));
         } catch {
             options = [];
         }
 
-        wrap.innerHTML = `<select class="form-select" name="${baseName}">`
-            + `<option value="">Select a value…</option>`
-            + options.map((value) => `<option value="${escapeAttr(value)}">${escapeHtml(value)}</option>`).join('')
+        const custom = previousValue !== '' && !options.includes(previousValue)
+            ? `<option value="${escapeAttr(previousValue)}" selected>${escapeHtml(previousValue)}</option>`
+            : '';
+
+        wrap.innerHTML = `<select class="form-select js-header-value" name="${baseName}" placeholder="Select or type a value…">`
+            + `<option value="">Select or type a value…</option>`
+            + options.map((value) => `<option value="${escapeAttr(value)}"${value === previousValue ? ' selected' : ''}>${escapeHtml(value)}</option>`).join('')
+            + custom
             + `</select>`;
+
+        const valueSelect = wrap.querySelector('select');
+        const instance = enhanceHeaderValueSelect(valueSelect);
+
+        if (instance && previousValue !== '' && !options.includes(previousValue)) {
+            instance.addOption({ value: previousValue, text: previousValue });
+        }
+
+        if (instance && previousValue !== '') {
+            instance.setValue(previousValue);
+        }
     } else {
         const secret = row.hasAttribute('data-secret') || sensitive;
         wrap.innerHTML = `<input type="${kind === 'password' ? 'password' : 'text'}" class="form-control" name="${baseName}" placeholder="${secret ? 'Saved value hidden — leave blank to keep' : 'value'}" ${sensitive ? 'autocomplete="new-password"' : ''} />`;
+
+        if (previousValue !== '' && kind === 'text') {
+            const input = wrap.querySelector('input');
+
+            // Only restore plain-text values; never echo saved secrets.
+            if (input && !secret) {
+                input.value = previousValue;
+            }
+        }
     }
 
     reindex(row.closest('[data-rows]'));
@@ -500,6 +588,20 @@ function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (char) => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;',
     }[char]));
+}
+
+function decodeOptions(raw) {
+    if (!raw || !raw.includes('&')) {
+        return raw;
+    }
+
+    // Tolerate double-escaped data-options (e.g. cached HTML rendered with
+    // both htmlspecialchars() and Blade {{ }} escaping): decode HTML entities
+    // back to JSON before parsing.
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = raw;
+
+    return textarea.value;
 }
 
 function escapeAttr(value) {
