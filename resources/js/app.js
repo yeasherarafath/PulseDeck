@@ -9,7 +9,31 @@ import { getTheme, setTheme } from './theme.js';
 // (see service-form.js showTestModal), never window.bootstrap.
 window.TomSelect = TomSelect;
 
+// Keep the active tab across saves/reloads on long forms (Settings, Service).
+document.addEventListener('shown.bs.tab', (event) => {
+    if (!event.target.closest('[data-remember-tab]')) {
+        return;
+    }
+
+    try {
+        sessionStorage.setItem(`tab:${location.pathname}`, event.target.getAttribute('href'));
+    } catch {
+        // Storage unavailable: tabs simply reset to the first one.
+    }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
+    try {
+        const saved = sessionStorage.getItem(`tab:${location.pathname}`);
+        const link = saved ? document.querySelector(`[data-remember-tab] a[href="${saved}"]`) : null;
+
+        if (link && !link.classList.contains('active')) {
+            link.click();
+        }
+    } catch {
+        // Ignore storage errors.
+    }
+
     // The inline head snippet already applied the theme pre-paint;
     // normalize here so late markup and toggles stay consistent.
     document.documentElement.setAttribute('data-bs-theme', getTheme());

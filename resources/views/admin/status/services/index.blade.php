@@ -118,8 +118,13 @@
                         <tr>
                             <td colspan="8">
                                 <div class="empty">
-                                    <p class="empty-title">No services yet</p>
-                                    <p class="empty-subtitle text-secondary">Create your first monitored service to get started.</p>
+                                    @if (array_filter($filters))
+                                        <p class="empty-title">No services match these filters</p>
+                                        <p class="empty-subtitle text-secondary">Try a different search or <a href="{{ route('admin.status.services.index') }}">reset the filters</a>.</p>
+                                    @else
+                                        <p class="empty-title">No services yet</p>
+                                        <p class="empty-subtitle text-secondary">Create your first monitored service to get started.</p>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

@@ -4,6 +4,7 @@ namespace App\Models\Status;
 
 use App\Enums\Status\SettingGroup;
 use App\Enums\Status\SettingType;
+use App\Services\Status\PublicStatusService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
@@ -77,5 +78,6 @@ class StatusSetting extends Model
         ])->save();
 
         Cache::forget('status-setting-v1:'.$key);
+        PublicStatusService::flush();
     }
 }

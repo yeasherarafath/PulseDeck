@@ -30,7 +30,7 @@ class SsrfGuard
         $scheme = strtolower($parts['scheme'] ?? '');
 
         if (! in_array($scheme, self::ALLOWED_SCHEMES, true)) {
-            throw new SsrfBlockedException("URL scheme '{$scheme}' is not allowed. Only http and https may be monitored.");
+            throw new SsrfBlockedException("URL scheme '{$scheme}' is not allowed; use http or https.");
         }
 
         return $this->assertSafeHost($parts['host']);
@@ -52,7 +52,7 @@ class SsrfGuard
         $normalized = strtolower(rtrim($host, '.'));
 
         if ($normalized === 'localhost' || str_ends_with($normalized, '.localhost')) {
-            throw new SsrfBlockedException('Local host names may not be monitored.');
+            throw new SsrfBlockedException('Local host names are not allowed.');
         }
 
         if (filter_var($host, FILTER_VALIDATE_IP)) {
@@ -126,7 +126,7 @@ class SsrfGuard
         $public = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
 
         if ($public === false) {
-            throw new SsrfBlockedException("Target {$ip} is not a public address and may not be monitored.");
+            throw new SsrfBlockedException("Target {$ip} is not a public address and may not be reached.");
         }
     }
 }

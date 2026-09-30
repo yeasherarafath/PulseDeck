@@ -26,7 +26,7 @@
         <input type="hidden" name="settings_form" value="1" />
         <div class="card">
             <div class="card-header">
-                <ul class="nav nav-tabs card-header-tabs" data-bs-toggle="tabs" role="tablist">
+                <ul class="nav nav-tabs card-header-tabs" data-bs-toggle="tabs" data-remember-tab role="tablist">
                     @foreach ($grouped as $group => $data)
                         <li class="nav-item" role="presentation">
                             <a href="#set-{{ $group }}" class="nav-link{{ $loop->first ? ' active' : '' }}" data-bs-toggle="tab" role="tab">{{ $data['label'] }}</a>

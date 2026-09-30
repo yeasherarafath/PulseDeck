@@ -9,8 +9,8 @@
 | Feature | Details |
 |---|---|
 | Home at `/` | Served directly, no redirect — drop it on a subdomain (e.g. `status.yourcompany.com`) and it just works. `/status` URLs keep working too. |
-| Overall banner | One glance state: All Operational, Degraded, Partial/Major Outage, or Maintenance, with “last updated” time. |
-| Service groups | Services organized under group headings (Websites, APIs, …) with per-service status badges and “checked X ago”. |
+| Overall banner | One glance state: All Operational, Degraded, Partial/Major Outage, Maintenance, or Unknown (before any check has run), with “last updated” time. |
+| Service groups | Services organized under group headings (Websites, APIs, …) with per-service status badges and “checked X ago”. Public services without a group are listed under **Other services**. |
 | Active incidents | Red-highlighted card listing open incidents with timeline links. |
 | Scheduled maintenance | Blue card with upcoming windows so visitors know downtime is planned. |
 | 90-day uptime history | Per-service daily bars with exact % tooltips (scrollable on phones). |
@@ -19,7 +19,7 @@
 | Email subscriptions | Visitors subscribe, confirm via verification link, and get incident emails with a one-click unsubscribe footer. |
 | Status badge | Embeddable SVG (`/status/badge.svg`) for dashboards/GitHub READMEs. |
 | Public JSON API | `/api/status`, `/api/status/services`, `/api/status/services/{slug}`, `/api/status/incidents` (rate-limited). |
-| Live refresh | Page polls for updates every ~60 s without reloads. |
+| Live refresh | Page polls for updates every ~60 s without reloads. Admin changes (services, groups, incidents, maintenance, settings) clear the cache immediately. |
 | Dark / light mode | One-click toggle, remembers the visitor’s choice (default: light). |
 | Branding | Your logo (light + dark variants), favicon, and app name everywhere including notification emails. |
 
@@ -55,9 +55,10 @@
 
 ## 5. Maintenance windows
 
-- Schedule title, description, start/end, affected services.
+- Schedule title, description, start/end (entered and displayed in the timezone configured in Settings), affected services.
 - Affected services show “Scheduled Maintenance” on the public page during the window.
 - Cancel or delete windows; past windows stay in history.
+- Starting, ending, cancelling or deleting a window re-queues an immediate check of the affected services, so their status follows promptly.
 
 ## 6. Notifications
 
@@ -77,8 +78,9 @@
 - **Monitoring** — queue depth, failed jobs, heartbeat, per-service last/next check, response times, last errors.
 - **Services, Groups, Incidents, Maintenance** — full CRUD with search/filter.
 - **Notifications** — Channels, Rules, Subscribers, Deliveries tabs.
-- **Settings** — 8 groups (see below), logo/favicon drag-and-drop upload with preview, partial-safe saving (one bad SMTP port never wipes the rest).
+- **Settings** — 8 groups (see below), logo/favicon drag-and-drop upload with preview (SVGs are allowlist-sanitised; unsafe ones are rejected and the old logo kept), partial-safe saving (one bad SMTP port never wipes the rest), a “Clear stored value” tick for secrets, and the active tab is remembered across saves.
 - **Audit log** — who changed what, when, from which IP.
+- **API docs** (sidebar → Configure) — every public endpoint with cURL / JavaScript / PHP / Python samples, example responses, error codes, rate limit, reference values, copy buttons, and a live **Try it** button.
 - **Roles & permissions** — `super-admin` (everything), `status-manager` (everything except settings), `status-viewer` (read-only). 18 granular `status.*` permissions via Spatie.
 - Dark / light mode with sticky top bar.
 

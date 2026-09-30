@@ -64,16 +64,16 @@
                             <h3 class="card-title">Post an update</h3>
                             <div class="row g-3">
                                 <div class="col-12">
-                                    <label class="form-label">Status</label>
-                                    <select class="form-select" name="status">
+                                    <label class="form-label" for="upd-status">Status</label>
+                                    <select class="form-select" id="upd-status" name="status">
                                         @foreach (\App\Enums\Status\IncidentStatus::cases() as $status)
                                             <option value="{{ $status->value }}" @selected($incident->status->value === $status->value)>{{ $status->label() }}</option>
                                         @endforeach
                                     </select>
                                 </div>
                                 <div class="col-12">
-                                    <label class="form-label">Message</label>
-                                    <textarea class="form-control @error('message') is-invalid @enderror" name="message" rows="3" required>{{ old('message') }}</textarea>
+                                    <label class="form-label required" for="upd-message">Message</label>
+                                    <textarea class="form-control @error('message') is-invalid @enderror" id="upd-message" name="message" rows="3" required>{{ old('message') }}</textarea>
                                     @error('message')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
                             </div>

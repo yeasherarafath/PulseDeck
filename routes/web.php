@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\Status\ApiDocsController;
 use App\Http\Controllers\Admin\Status\AuditLogController;
 use App\Http\Controllers\Admin\Status\DashboardController;
 use App\Http\Controllers\Admin\Status\DeliveryController;
@@ -47,6 +48,8 @@ Route::prefix('status')->name('status.')->group(function () {
 
 Route::prefix(trim((string) config('status.admin_prefix', 'admin'), '/').'/status')->name('admin.status.')->middleware(['auth', 'permission:status.view'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('api-docs', ApiDocsController::class)->name('api-docs');
 
     Route::get('monitoring', MonitoringController::class)->name('monitoring')->middleware('permission:status.monitoring.view');
 

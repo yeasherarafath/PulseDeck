@@ -199,6 +199,10 @@ on every admin route.
 **Public links to share:** `/` (status home) · `/api/status` (JSON API) ·
 `/status/badge.svg` (embeddable badge) · per-service pages linked from the home page.
 
+8. **Use the API** — the admin sidebar has an **API docs** page (Configure → API docs) with every
+   public endpoint, request samples in cURL / JavaScript / PHP / Python, example responses, error codes,
+   rate limits, and a **Try it** button that calls your live server.
+
 ---
 
 ## Going live (production checklist)
@@ -230,7 +234,9 @@ on every admin route.
 | No emails arrive | Settings → Mail: verify SMTP, use Test email; check Mailpit (`localhost:1025`) in dev; check Deliveries page for `failed` rows (errors logged without secrets) |
 | Webhook rejected as private/reserved address | Webhook targets pass the SSRF guard; set `STATUS_WEBHOOK_ALLOW_PRIVATE=true` in `.env` only if you must reach internal hosts |
 | A service flaps up/down | Raise its “min failures before down” (per-service or global) |
-| Public page looks outdated | It’s cached briefly by design; flips invalidate it within seconds |
+| Public page looks outdated | Cached up to 30 s; any change to a service, group, incident, maintenance window or setting clears it immediately, so only "checked x ago" can lag |
+| A public service is missing from the page | Services without a group are listed under **Other services**; services set to *not public* are never shown |
+| Maintenance window starts at the wrong hour | Start/end are entered in the timezone from Settings → General (shown under the field), not in UTC or your browser's timezone |
 
 ---
 
@@ -255,21 +261,22 @@ logs/audit/test output. Global helpers in `app/helper/helper.php`
 ```text
 /                                     public home (subdomain-ready)
 /status · /status/services/{slug} · /status/incidents/{incident}
-/status/{subscribe,verify/{token},unsubscribe/{token},badge.svg,refresh}
+/status/{subscribe,verify/{token},badge.svg,refresh}
+/status/unsubscribe/{token}          GET = confirmation page, POST = unsubscribe (scanners cannot unsubscribe anyone)
 /api/status · /api/status/services · /api/status/services/{slug} · /api/status/incidents
-/admin/status/{dashboard,monitoring,services,groups,incidents,maintenances,notifications/{channels,rules,subscribers,deliveries},settings,audit-logs}
+/admin/status/{dashboard,monitoring,services,groups,incidents,maintenances,notifications/{channels,rules,subscribers,deliveries},settings,audit-logs,api-docs}
 ```
 
 **Commands:** `status:dispatch-due` (every minute) · `status:calculate-daily` (00:10) ·
 `status:cleanup` (01:00) · `status:recalculate` · `status:test --service=ID`.
 
 ```bash
-php artisan test            # full suite (54 tests, must stay green)
+php artisan test            # full suite (76 tests, must stay green)
 vendor/bin/pint --dirty     # code style — run before finalizing PHP changes
 ```
 
 **Docs:** [`features.md`](features.md) capability catalog ·
-[`final-plan.md`](plans/final-plan.md) build spec · [`notification-plan.md`](plans/notification-plan.md)
+[`final-plan.md`](plans/final-plan.md) build spec · [`plans/browser/full-test-plan4.md`](plans/browser/full-test-plan4.md) page-by-page browser test plan with results · [`notification-plan.md`](plans/notification-plan.md)
 notification deep-dive · [`plan.md`](plans/plan.md) original brainstorm.
 
 ## License

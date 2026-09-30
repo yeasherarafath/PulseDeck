@@ -4,6 +4,7 @@ namespace App\Models\Status;
 
 use App\Enums\Status\IncidentImpact;
 use App\Enums\Status\IncidentStatus;
+use App\Services\Status\PublicStatusService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -41,6 +42,11 @@ class StatusIncident extends Model
 
     protected static function booted(): void
     {
+        $flush = fn (self $incident) => PublicStatusService::flush($incident->service_id);
+
+        static::saved($flush);
+        static::deleted($flush);
+
         static::creating(function (self $incident): void {
             if (blank($incident->slug)) {
                 $incident->slug = Str::slug($incident->title.'-'.now()->format('Ymd-Hi'));

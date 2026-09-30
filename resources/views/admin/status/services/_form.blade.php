@@ -30,7 +30,7 @@
 
     <div class="card">
         <div class="card-header">
-            <ul class="nav nav-tabs card-header-tabs" data-bs-toggle="tabs" role="tablist">
+            <ul class="nav nav-tabs card-header-tabs" data-bs-toggle="tabs" data-remember-tab role="tablist">
                 <li class="nav-item" role="presentation"><a href="#tab-general" class="nav-link active" data-bs-toggle="tab" role="tab">General</a></li>
                 <li class="nav-item" role="presentation"><a href="#tab-request" class="nav-link" data-bs-toggle="tab" role="tab">Request</a></li>
                 <li class="nav-item" role="presentation"><a href="#tab-auth" class="nav-link" data-bs-toggle="tab" role="tab">Auth</a></li>

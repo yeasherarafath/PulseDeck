@@ -39,6 +39,7 @@ class MaintenanceManager
             ->where('ends_at', '>=', now())
             ->each(function (StatusMaintenance $maintenance) use (&$started): void {
                 $maintenance->forceFill(['status' => MaintenanceStatus::Active])->save();
+                $maintenance->requeueServices();
                 $started++;
                 MaintenanceStarted::dispatch($maintenance);
             });
@@ -47,6 +48,7 @@ class MaintenanceManager
             ->where('ends_at', '<', now())
             ->each(function (StatusMaintenance $maintenance) use (&$ended): void {
                 $maintenance->forceFill(['status' => MaintenanceStatus::Completed])->save();
+                $maintenance->requeueServices();
                 $ended++;
                 MaintenanceEnded::dispatch($maintenance);
             });
@@ -57,6 +59,7 @@ class MaintenanceManager
             ->where('ends_at', '<', now())
             ->each(function (StatusMaintenance $maintenance) use (&$ended): void {
                 $maintenance->forceFill(['status' => MaintenanceStatus::Completed])->save();
+                $maintenance->requeueServices();
                 $ended++;
                 MaintenanceEnded::dispatch($maintenance);
             });

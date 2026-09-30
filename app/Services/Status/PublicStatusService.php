@@ -34,6 +34,24 @@ class PublicStatusService
         Cache::forget(self::CACHE_KEY);
     }
 
+    /**
+     * Drop cached public data after anything visitors can see has changed.
+     * Pass a service id to also drop just that service page; omit it to drop
+     * every per-service payload (group renames, settings, maintenance).
+     */
+    public static function flush(?int $serviceId = null): void
+    {
+        Cache::forget(self::CACHE_KEY);
+
+        if ($serviceId !== null) {
+            Cache::forget(self::serviceKey($serviceId));
+
+            return;
+        }
+
+        StatusService::query()->pluck('id')->each(fn (int $id) => Cache::forget(self::serviceKey($id)));
+    }
+
     public static function serviceKey(int $serviceId): string
     {
         return "status:service-v2:{$serviceId}";
@@ -101,7 +119,10 @@ class PublicStatusService
             $query->public()->orderBy('sort_order')->orderBy('name');
         }])->get();
 
-        $services = $groups->pluck('services')->flatten();
+        // Public services without a group must still be visible.
+        $ungrouped = StatusService::query()->public()->whereNull('group_id')->orderBy('sort_order')->orderBy('name')->get();
+
+        $services = $groups->pluck('services')->flatten()->concat($ungrouped);
 
         $statuses = $services->map(fn (StatusService $service) => $service->current_status)->filter();
 
@@ -125,6 +146,17 @@ class PublicStatusService
             }
 
             $groupRows[] = ['name' => $group->name, 'services' => $serviceRows];
+        }
+
+        if ($ungrouped->isNotEmpty()) {
+            $serviceRows = [];
+
+            foreach ($ungrouped as $service) {
+                $serviceRows[] = $this->serviceRow($service);
+                $uptime[$service->id] = $this->dailyBars($service, $window);
+            }
+
+            $groupRows[] = ['name' => $groups->isEmpty() ? 'Services' : 'Other services', 'services' => $serviceRows];
         }
 
         return [

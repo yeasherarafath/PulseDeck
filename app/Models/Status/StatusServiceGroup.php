@@ -2,6 +2,7 @@
 
 namespace App\Models\Status;
 
+use App\Services\Status\PublicStatusService;
 use Database\Factories\StatusServiceGroupFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -42,6 +43,9 @@ class StatusServiceGroup extends Model
 
     protected static function booted(): void
     {
+        static::saved(fn () => PublicStatusService::flush());
+        static::deleted(fn () => PublicStatusService::flush());
+
         static::creating(function (self $group): void {
             if (blank($group->slug)) {
                 $group->slug = Str::slug($group->name);

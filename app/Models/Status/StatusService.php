@@ -7,6 +7,7 @@ use App\Enums\Status\HttpMethod;
 use App\Enums\Status\HttpVersion;
 use App\Enums\Status\RequestBodyType;
 use App\Enums\Status\ServiceStatus;
+use App\Services\Status\PublicStatusService;
 use Database\Factories\StatusServiceFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -132,6 +133,15 @@ class StatusService extends Model
 
     protected static function booted(): void
     {
+        // Check bookkeeping (last_checked_at etc.) must not flush the cache on
+        // every run; only changes visitors can see do.
+        static::saved(function (self $service): void {
+            if ($service->wasRecentlyCreated || $service->wasChanged(['name', 'slug', 'is_public', 'is_active', 'group_id', 'sort_order', 'current_status'])) {
+                PublicStatusService::flush($service->id);
+            }
+        });
+        static::deleted(fn (self $service) => PublicStatusService::flush());
+
         static::creating(function (self $service): void {
             if (blank($service->slug)) {
                 $service->slug = Str::slug($service->name);

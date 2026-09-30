@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Status\StatusAuditLog;
 use App\Models\Status\StatusMaintenance;
 use App\Models\Status\StatusService;
+use App\Services\Status\PublicStatusService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -58,6 +59,7 @@ class MaintenanceController extends Controller
         ]);
 
         $maintenance->services()->sync($validated['services']);
+        PublicStatusService::flush();
 
         StatusAuditLog::record('maintenance.created', $maintenance, null, ['title' => $maintenance->title]);
 
@@ -96,6 +98,7 @@ class MaintenanceController extends Controller
         ])->save();
 
         $maintenance->services()->sync($validated['services']);
+        PublicStatusService::flush();
 
         StatusAuditLog::record('maintenance.updated', $maintenance, null, ['title' => $maintenance->title]);
 
@@ -109,6 +112,7 @@ class MaintenanceController extends Controller
 
         StatusAuditLog::record('maintenance.deleted', $maintenance, ['title' => $maintenance->title], null);
 
+        $maintenance->requeueServices();
         $maintenance->delete();
 
         return redirect()->route('admin.status.maintenances.index')
@@ -120,6 +124,7 @@ class MaintenanceController extends Controller
         $this->authorize('status.maintenance.update');
 
         $maintenance->forceFill(['status' => MaintenanceStatus::Cancelled])->save();
+        $maintenance->requeueServices();
 
         StatusAuditLog::record('maintenance.cancelled', $maintenance, null, ['status' => 'cancelled']);
 

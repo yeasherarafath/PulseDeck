@@ -66,6 +66,20 @@ class AdminSmokeTest extends TestCase
         ];
     }
 
+    public function test_api_docs_page_lists_every_public_endpoint(): void
+    {
+        $this->actingAs($this->admin)->get('/admin/status/api-docs')
+            ->assertOk()
+            ->assertSee('/api/status/services/{slug}', false)
+            ->assertSee('/api/status/incidents', false)
+            ->assertSee('curl -s', false)
+            ->assertSee('API docs');
+
+        $viewer = User::factory()->create();
+        $viewer->assignRole('status-viewer');
+        $this->actingAs($viewer)->get('/admin/status/api-docs')->assertOk();
+    }
+
     public function test_guests_are_redirected_and_viewers_cannot_write(): void
     {
         $this->get('/admin/status')->assertRedirect('/login');
@@ -103,7 +117,7 @@ class AdminSmokeTest extends TestCase
             '/admin/status/maintenances', '/admin/status/maintenances/create', "/admin/status/maintenances/{$maintenance->id}/edit",
             '/admin/status/notifications/channels', '/admin/status/notifications/rules',
             '/admin/status/notifications/subscribers', '/admin/status/notifications/deliveries',
-            '/admin/status/settings', '/admin/status/audit-logs',
+            '/admin/status/settings', '/admin/status/audit-logs', '/admin/status/api-docs',
             '/admin/status/services?search=x&active=1', '/admin/status/incidents?status=resolved',
         ];
 
@@ -236,11 +250,38 @@ class AdminSmokeTest extends TestCase
             'ends_at' => now()->addDay()->format('Y-m-d H:i'), 'services' => [$service->id],
         ])->assertSessionHasErrors('ends_at');
 
+        $service->forceFill(['next_check_at' => now()->addHour()])->save();
+
         $this->actingAs($this->admin)->post("/admin/status/maintenances/{$maintenance->id}/cancel")->assertRedirect();
         $this->assertSame('cancelled', $maintenance->fresh()->status->value);
+        $this->assertTrue($service->fresh()->next_check_at->lte(now()), 'affected services are re-checked right away');
 
         $this->actingAs($this->admin)->delete("/admin/status/maintenances/{$maintenance->id}")->assertRedirect();
         $this->assertNull(StatusMaintenance::find($maintenance->id));
+    }
+
+    public function test_public_page_reflects_admin_changes_immediately(): void
+    {
+        $service = StatusService::factory()->create(['name' => 'Before Name', 'current_status' => ServiceStatus::Operational]);
+
+        $this->get('/')->assertSee('Before Name');
+
+        $this->actingAs($this->admin)->put("/admin/status/services/{$service->slug}", $this->serviceData(['name' => 'After Name', 'slug' => $service->slug]))
+            ->assertSessionHasNoErrors();
+        $this->get('/')->assertSee('After Name')->assertDontSee('Before Name');
+
+        $this->actingAs($this->admin)->post('/admin/status/incidents', [
+            'service_id' => $service->id, 'title' => 'Visible now', 'impact' => 'minor', 'message' => 'x',
+        ]);
+        $incident = StatusIncident::where('title', 'Visible now')->firstOrFail();
+        $this->get('/')->assertSee('Visible now');
+
+        $this->actingAs($this->admin)->post("/admin/status/incidents/{$incident->id}/updates", ['status' => 'resolved', 'message' => 'done']);
+        $this->get('/')->assertDontSee('Visible now');
+
+        $this->actingAs($this->admin)->post("/admin/status/services/{$service->slug}/pause");
+        $this->actingAs($this->admin)->followingRedirects()->delete("/admin/status/services/{$service->slug}");
+        $this->get('/')->assertDontSee('After Name');
     }
 
     public function test_maintenance_times_are_entered_in_the_display_timezone(): void
