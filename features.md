@@ -81,7 +81,7 @@
 - **Settings** — 8 groups (see below), logo/favicon drag-and-drop upload with preview (SVGs are allowlist-sanitised; unsafe ones are rejected and the old logo kept), partial-safe saving (one bad SMTP port never wipes the rest), a “Clear stored value” tick for secrets, and the active tab is remembered across saves.
 - **Audit log** — who changed what, when, from which IP.
 - **API docs** (sidebar → Configure) — every public endpoint with cURL / JavaScript / PHP / Python samples, example responses, error codes, rate limit, reference values, copy buttons, and a live **Try it** button.
-- **Roles & permissions** — `super-admin` (everything), `status-manager` (everything except settings), `status-viewer` (read-only). 18 granular `status.*` permissions via Spatie.
+- **Roles & permissions** — `super-admin` (everything), `status-manager` (everything except settings and admin/role management), `status-viewer` (read-only). 19 granular `status.*` permissions via Spatie, with Admins and Roles pages for user/role CRUD (plus custom roles) and a per-admin Profile page (name, email, password).
 - Dark / light mode with sticky top bar.
 
 ## 8. Settings reference (`status_settings`)

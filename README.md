@@ -167,12 +167,13 @@ php artisan tinker --execute 'App\Models\User::where("email", "teammate@company.
 
 | Role | Can do |
 |---|---|
-| `super-admin` | Everything, including Settings and audit log |
-| `status-manager` | Everything **except** Settings |
+| `super-admin` | Everything, including Settings, audit log, admins, and roles |
+| `status-manager` | Everything **except** Settings, admins, and roles |
 | `status-viewer` | View services, monitoring, incidents, maintenance (read-only) |
 
-Under the hood these map to 18 granular `status.*` permissions (Spatie), enforced
-on every admin route.
+Under the hood these map to 19 granular `status.*` permissions (Spatie), enforced
+on every admin route. Manage admins and roles at Admin → Admins / Roles; every
+admin can update their own name, email, and password at Profile.
 
 ---
 
