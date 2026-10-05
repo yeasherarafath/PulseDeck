@@ -159,6 +159,8 @@
                                     @endforeach
                                 </select>
                                 @if ($listedUser->is(auth()->user()))
+                                    {{-- Disabled selects are not submitted, so keep the current role in the request. --}}
+                                    <input type="hidden" name="role" value="{{ $listedUser->roles->first()?->name }}" />
                                     <div class="form-hint">You cannot change your own role.</div>
                                 @endif
                             </div>

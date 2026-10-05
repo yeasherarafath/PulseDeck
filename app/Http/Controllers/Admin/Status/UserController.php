@@ -55,16 +55,23 @@ class UserController extends Controller
     {
         $this->authorize('status.users.manage');
 
+        $isSelf = $user->is($request->user());
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-            'role' => ['required', 'string', Rule::in(Role::orderBy('name')->pluck('name')->all())],
+            // The edit form disables the role select for your own row (disabled
+            // inputs are not submitted), so the role is optional when editing
+            // yourself and falls back to the current role.
+            'role' => [$isSelf ? 'nullable' : 'required', 'string', Rule::in(Role::orderBy('name')->pluck('name')->all())],
         ]);
+
+        $role = $validated['role'] ?? $user->getRoleNames()->first();
 
         // Nobody can strip their own role: that would lock them out (or
         // silently escalate a session). Edit another admin instead.
-        if ($user->is($request->user()) && ! $user->hasRole($validated['role'])) {
+        if ($isSelf && $role !== null && ! $user->hasRole($role)) {
             return redirect()->route('admin.status.users.index')
                 ->with('error', 'You cannot change your own role.');
         }
@@ -81,9 +88,11 @@ class UserController extends Controller
         }
 
         $user->save();
-        $user->syncRoles([$validated['role']]);
+        if ($role !== null) {
+            $user->syncRoles([$role]);
+        }
 
-        StatusAuditLog::record('user.updated', $user->fresh(), $old, ['name' => $user->name, 'email' => $user->email, 'roles' => [$validated['role']]]);
+        StatusAuditLog::record('user.updated', $user->fresh(), $old, ['name' => $user->name, 'email' => $user->email, 'roles' => $role !== null ? [$role] : $old['roles']]);
 
         return redirect()->route('admin.status.users.index')->with('status', "Admin [{$user->email}] updated.");
     }

@@ -41,6 +41,33 @@
                 <h1 class="navbar-brand navbar-brand-autodark">
                     <x-app-brand :href="route('admin.status.dashboard')" />
                 </h1>
+                @auth
+                    <div class="navbar-nav flex-row ms-auto d-lg-none align-items-center">
+                        <div class="nav-item me-2">
+                            <x-theme-toggle />
+                        </div>
+                        <div class="nav-item dropdown">
+                            <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown"
+                                aria-label="Open user menu">
+                                <span
+                                    class="avatar avatar-sm">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}</span>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                                <div class="dropdown-header">
+                                    <div>{{ auth()->user()->name }}</div>
+                                    <div class="small text-secondary">{{ auth()->user()->email }}</div>
+                                </div>
+                                <a href="{{ route('admin.status.profile') }}" class="dropdown-item">Profile</a>
+                                <a href="{{ route('home') }}" target="_blank" rel="noopener" class="dropdown-item">View public page</a>
+                                <div class="dropdown-divider"></div>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item">Logout</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                @endauth
                 <div class="collapse navbar-collapse" id="sidebar-menu">
                     <ul class="navbar-nav pt-lg-3">
                         <li class="nav-section-title">Monitor</li>
