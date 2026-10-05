@@ -82,6 +82,23 @@
     min-width: 480px;
 }
 
+// --- row-deck columns containing a <form> wrapping the card ---
+// Tabler turns `.row-deck > [class*=col-]` into `display:flex` and stretches
+// only a direct-child `.card` (`flex:1`). When a <form> wraps the card (e.g.
+// profile, settings, notification channel forms), the form becomes the flex
+// item with `flex:0 1 auto` and shrinks to content width, so a col-md-6 card
+// renders as narrow as a col-2. Stretch the form and let its card fill it.
+.row-deck > [class*='col-'] > form {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.row-deck > [class*='col-'] > form > .card {
+    flex: 1 1 auto;
+}
+
 // --- Tom Select dropdowns must float above following content ---
 // (The header name/value dropdowns open over the "+ Add header" button and
 // the Request body section; without a solid background + stacking context
