@@ -92,7 +92,7 @@ capability catalog and [`todo.md`](todo.md) for what's planned next.
 ### 1. Get the code
 
 ```bash
-git clone <your-repo-url> status-page
+git clone https://github.com/yeasherarafath/PulseDeck.git status-page
 cd status-page
 composer install
 npm install
