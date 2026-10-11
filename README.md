@@ -194,8 +194,7 @@ covers everything.
 - **Local dev:** email `admin@example.com`, password `password`
   (created by the seeder, local environments only — change it immediately:
   log in → top-right menu → update profile/password).
-- **Production:** the seeder never creates users there — add your first admin
-  (see [Admin users](#admin-users--roles)).
+- ~~**Production:** the seeder never creates users there — add your first admin (see [Admin users](#admin-users--roles)).~~
 
 Admin panel lives at `/admin/status` (prefix changeable in Settings → General).
 
