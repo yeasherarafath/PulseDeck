@@ -5,6 +5,7 @@ namespace App\Jobs\Status;
 use App\Enums\Status\CheckResultStatus;
 use App\Models\Status\StatusDailyStat;
 use App\Models\Status\StatusService;
+use App\Services\Status\PublicStatusService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -47,17 +48,32 @@ class CalculateDailyStats implements ShouldQueue
 
         $timings = (clone $checks)->whereNotNull('response_time');
 
-        StatusDailyStat::updateOrCreate(
-            ['service_id' => $service->id, 'date' => $date],
-            [
-                'total_checks' => $total,
-                'successful_checks' => $successful,
-                'failed_checks' => $failed,
-                'uptime_percentage' => $total > 0 ? round($successful / $total * 100, 2) : 100,
-                'avg_response_time' => $timings->avg('response_time') !== null ? (int) round($timings->avg('response_time')) : null,
-                'min_response_time' => (clone $checks)->whereNotNull('response_time')->min('response_time'),
-                'max_response_time' => (clone $checks)->whereNotNull('response_time')->max('response_time'),
-            ],
-        );
+        $attributes = [
+            'total_checks' => $total,
+            'successful_checks' => $successful,
+            'failed_checks' => $failed,
+            'uptime_percentage' => $total > 0 ? round($successful / $total * 100, 2) : 100,
+            'avg_response_time' => $timings->avg('response_time') !== null ? (int) round($timings->avg('response_time')) : null,
+            'min_response_time' => (clone $checks)->whereNotNull('response_time')->min('response_time'),
+            'max_response_time' => (clone $checks)->whereNotNull('response_time')->max('response_time'),
+        ];
+
+        // whereDate keeps the lookup stable whether the driver stores DATE
+        // as "Y-m-d" (MySQL) or "Y-m-d H:i:s" (SQLite), so re-aggregating
+        // the same day is a safe update, never a duplicate insert.
+        $existing = StatusDailyStat::where('service_id', $service->id)
+            ->whereDate('date', $date)
+            ->first();
+
+        if ($existing) {
+            $existing->fill($attributes)->save();
+        } else {
+            StatusDailyStat::create(array_merge(
+                ['service_id' => $service->id, 'date' => $date],
+                $attributes,
+            ));
+        }
+
+        PublicStatusService::flush($service->id);
     }
 }

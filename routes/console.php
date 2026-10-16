@@ -10,4 +10,5 @@ Artisan::command('inspire', function () {
 
 Schedule::command('status:dispatch-due')->everyMinute();
 Schedule::command('status:calculate-daily')->dailyAt('00:10');
+Schedule::command('status:calculate-daily --date=today')->hourly();
 Schedule::command('status:cleanup')->dailyAt('01:00');

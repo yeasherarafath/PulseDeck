@@ -71,9 +71,24 @@ class PublicStatusService
             $window = (int) StatusSetting::get('uptime_window_days', 90);
 
             $stats = $service->dailyStats()
-                ->where('date', '>=', now()->subDays($window)->toDateString())
+                ->where('date', '>=', now()->subDays($window - 1)->toDateString())
                 ->orderBy('date')
-                ->get();
+                ->get()
+                ->keyBy(fn ($stat) => $stat->date->toDateString());
+
+            $daily = [];
+
+            for ($i = $window - 1; $i >= 0; $i--) {
+                $date = now()->subDays($i)->toDateString();
+                $stat = $stats->get($date);
+
+                $daily[] = [
+                    'date' => $date,
+                    'uptime' => $stat ? (float) $stat->uptime_percentage : null,
+                    'total' => $stat?->total_checks ?? 0,
+                    'successful' => $stat?->successful_checks ?? 0,
+                ];
+            }
 
             $responseTimes = $service->checks()
                 ->whereNotNull('response_time')
@@ -93,12 +108,7 @@ class PublicStatusService
                 'service' => $this->serviceRow($service),
                 'group_name' => $service->group?->name,
                 'window_days' => $window,
-                'daily' => $stats->map(fn ($stat) => [
-                    'date' => $stat->date->toDateString(),
-                    'uptime' => (float) $stat->uptime_percentage,
-                    'total' => $stat->total_checks,
-                    'successful' => $stat->successful_checks,
-                ])->all(),
+                'daily' => $daily,
                 'uptime_90' => $this->windowUptime($service, $window),
                 'response_times' => $responseTimes->map(fn ($check) => [
                     't' => $check->checked_at->toIso8601String(),
@@ -281,7 +291,7 @@ class PublicStatusService
     private function windowUptime(StatusService $service, int $window): array
     {
         $stats = $service->dailyStats()
-            ->where('date', '>=', now()->subDays($window)->toDateString())
+            ->where('date', '>=', now()->subDays($window - 1)->toDateString())
             ->get();
 
         $total = $stats->sum('total_checks');

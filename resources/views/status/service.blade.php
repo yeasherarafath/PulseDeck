@@ -26,10 +26,10 @@
             <h3 class="card-title">{{ $window_days }}-day uptime</h3>
         </div>
         <div class="card-body">
-            @if ($daily === [])
-                <p class="text-secondary mb-0">No history recorded yet — check back after the first monitoring runs.</p>
-            @else
+            @if (collect($daily)->contains(fn ($day) => $day['uptime'] !== null))
                 <x-status-uptime-bars :days="$daily" />
+            @else
+                <p class="text-secondary mb-0">No history recorded yet — check back after the first monitoring runs.</p>
             @endif
         </div>
     </div>
