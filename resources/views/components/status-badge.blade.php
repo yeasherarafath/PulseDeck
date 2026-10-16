@@ -20,4 +20,4 @@
     $class = $enum && method_exists($enum, 'badgeClass') ? $enum->badgeClass() : 'bg-secondary-lt';
     $dot = $enum && method_exists($enum, 'color') ? $enum->color() : 'secondary';
 @endphp
-<span {{ $attributes->merge(['class' => "badge {$class}"]) }}><span class="status-dot bg-{{ $dot }} me-1"></span>{{ $label }}</span>
+<span {{ $attributes->merge(['class' => "badge {$class}"]) }}><span class="status-dot status-dot-animated bg-{{ $dot }} me-1"></span>{{ $label }}</span>

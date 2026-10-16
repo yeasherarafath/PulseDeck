@@ -77,9 +77,15 @@
 .uptime-bars-scroll {
     overflow-x: auto;
 }
-
 .uptime-bars-scroll > .d-flex {
     min-width: 480px;
+}
+
+// --- Pulsing status dots respect reduced-motion preferences ---
+@media (prefers-reduced-motion: reduce) {
+    .status-dot-animated::before {
+        animation: none;
+    }
 }
 
 // --- row-deck columns containing a <form> wrapping the card ---

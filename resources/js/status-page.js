@@ -82,7 +82,7 @@ function initPolling(root) {
                     const dotEl = document.createElement('span');
 
                     badge.className = `badge bg-${color}-lt`;
-                    dotEl.className = `status-dot bg-${color} me-1`;
+                    dotEl.className = `status-dot status-dot-animated bg-${color} me-1`;
                     badge.append(dotEl, document.createTextNode(text));
                     row.replaceChildren(badge);
                 }

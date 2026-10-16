@@ -118,10 +118,13 @@
                                 @php($known = collect($bars)->filter(fn ($b) => $b['uptime'] !== null))
                                 <span class="text-secondary">{{ $known->isNotEmpty() ? number_format($known->avg('uptime'), 2).'%' : 'no data' }}</span>
                             </div>
-                            <x-status-uptime-bars :days="$bars" />
+                            <x-status-uptime-bars :days="$bars" :service-slug="$service['slug']" />
                         </div>
                     @endforeach
                 @endforeach
+                @if (collect($uptime)->flatten(1)->contains(fn ($b) => ($b['total'] ?? 0) - ($b['successful'] ?? 0) > 0))
+                    <p class="text-secondary small mt-1 mb-0">Select a bar with failures to see what went wrong that day.</p>
+                @endif
             </div>
         </div>
 

@@ -26,6 +26,19 @@ class ServiceDayIssuesTest extends TestCase
         $response->assertSee(route('status.services.show', ['service' => $service->slug, 'date' => $date]), false);
     }
 
+    public function test_home_bars_link_to_days_with_failures(): void
+    {
+        $service = StatusService::factory()->create(['is_public' => true]);
+        $date = today()->subDay()->toDateString();
+
+        $this->seedDay($service, $date, total: 5, successful: 3);
+
+        $response = $this->get(route('status.index'));
+
+        $response->assertOk();
+        $response->assertSee(route('status.services.show', ['service' => $service->slug, 'date' => $date]), false);
+    }
+
     public function test_day_detail_lists_failed_checks_with_errors(): void
     {
         $service = StatusService::factory()->create(['is_public' => true]);
