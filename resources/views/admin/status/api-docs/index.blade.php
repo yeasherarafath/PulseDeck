@@ -176,6 +176,10 @@
                         <pre class="{{ $codeBox }}" style="{{ $codeStyle }}">{{ '<img src="'.$origin.'/status/badge.svg" alt="Service status">' }}
 
 {{ '![Service status]('.$origin.'/status/badge.svg)' }}</pre>
+                        <p class="text-secondary mt-2 mb-1">Per-service badge: append <code>?service={slug}</code> (left shows the service name, right its state). Unknown or private slugs return 404.</p>
+                        <pre class="{{ $codeBox }}" style="{{ $codeStyle }}">{{ '<img src="'.$origin.'/status/badge.svg?service=main-website" alt="Main Website status">' }}
+
+{{ '![Main Website status]('.$origin.'/status/badge.svg?service=main-website)' }}</pre>
                     </div>
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-1">

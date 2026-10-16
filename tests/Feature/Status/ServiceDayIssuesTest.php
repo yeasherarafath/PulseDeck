@@ -141,6 +141,26 @@ class ServiceDayIssuesTest extends TestCase
         $this->get(route('status.services.show', ['service' => $service->slug, 'date' => today()->subDay()->toDateString()]))->assertNotFound();
     }
 
+    public function test_service_badge_shows_service_state(): void
+    {
+        $service = StatusService::factory()->create(['is_public' => true, 'name' => 'Website']);
+        $service->forceFill(['current_status' => ServiceStatus::Degraded])->save();
+
+        $response = $this->get('/status/badge.svg?service='.$service->slug);
+
+        $response->assertOk()->assertHeader('Content-Type', 'image/svg+xml');
+        $response->assertSee('Website', false);
+        $response->assertSee('degraded', false);
+    }
+
+    public function test_service_badge_rejects_unknown_and_private_slugs(): void
+    {
+        StatusService::factory()->create(['is_public' => false, 'slug' => 'secret-api']);
+
+        $this->get('/status/badge.svg?service=no-such-service')->assertNotFound();
+        $this->get('/status/badge.svg?service=secret-api')->assertNotFound();
+    }
+
     private function seedDay(StatusService $service, string $date, int $total, int $successful): void
     {
         StatusDailyStat::create([

@@ -185,12 +185,68 @@ class StatusPageController extends Controller
             ->with('status', $deleted > 0 ? 'You have been unsubscribed.' : 'This unsubscribe link is no longer valid.');
     }
 
-    public function badge(): Response
+    public function badge(Request $request): Response
     {
         abort_unless((bool) StatusSetting::get('badge_enabled', true), 404);
 
-        $payload = $this->public->payload();
+        $slug = $request->query('service');
 
+        if (is_string($slug) && trim($slug) !== '') {
+            $service = StatusService::query()->public()->where('slug', trim($slug))->first();
+
+            abort_unless($service, 404);
+
+            $siteName = (string) setting('app_name', config('app.name', 'Status'));
+
+            return response(
+                $this->badgeSvg(
+                    Str::limit($service->name, 24),
+                    $service->current_status->value,
+                    'status: '.$service->name.' — '.$service->current_status->label(),
+                    $siteName.' '.$service->name.' status: '.($this->badgeShortLabels()[$service->current_status->value] ?? $service->current_status->value),
+                ),
+                200,
+                ['Content-Type' => 'image/svg+xml', 'Cache-Control' => 'public, max-age=30']
+            );
+        }
+
+        $payload = $this->public->payload();
+        $siteName = (string) setting('app_name', config('app.name', 'Status'));
+        $status = $payload['status'];
+
+        return response(
+            $this->badgeSvg(
+                'status',
+                $status,
+                'status: '.$payload['status_label'],
+                $siteName.' status: '.($this->badgeShortLabels()[$status] ?? $status),
+            ),
+            200,
+            ['Content-Type' => 'image/svg+xml', 'Cache-Control' => 'public, max-age=30']
+        );
+    }
+
+    /**
+     * @return array<string, string> Short, badge-sized wording per status.
+     */
+    private function badgeShortLabels(): array
+    {
+        return [
+            'operational' => 'operational',
+            'degraded' => 'degraded',
+            'partial_outage' => 'partial outage',
+            'major_outage' => 'major outage',
+            'maintenance' => 'maintenance',
+            'unknown' => 'unknown',
+        ];
+    }
+
+    /**
+     * Shields-style two-segment SVG with a pulsing status dot.
+     * Only fixed maps and escaped caller strings reach the markup.
+     */
+    private function badgeSvg(string $left, string $status, string $ariaText, string $titleText): string
+    {
         $colors = [
             'operational' => '#2f9e44',
             'degraded' => '#e67700',
@@ -200,32 +256,21 @@ class StatusPageController extends Controller
             'unknown' => '#868e96',
         ];
 
-        // Short, badge-sized wording (the full sentence stays in aria-label).
-        $short = [
-            'operational' => 'operational',
-            'degraded' => 'degraded',
-            'partial_outage' => 'partial outage',
-            'major_outage' => 'major outage',
-            'maintenance' => 'maintenance',
-            'unknown' => 'unknown',
-        ];
+        $short = $this->badgeShortLabels();
 
-        $status = $payload['status'];
         $color = $colors[$status] ?? $colors['unknown'];
         $message = $short[$status] ?? $short['unknown'];
-        $siteName = (string) setting('app_name', config('app.name', 'Status'));
-        $title = htmlspecialchars($siteName.' status: '.$message, ENT_QUOTES);
-        $aria = htmlspecialchars('status: '.$payload['status_label'], ENT_QUOTES);
+        $aria = htmlspecialchars($ariaText, ENT_QUOTES);
+        $title = htmlspecialchars($titleText, ENT_QUOTES);
 
-        // Shields-style two-segment badge, sized from the 11px Verdana metrics.
-        $leftWidth = (int) round(strlen('status') * 6 + 12);
+        // Sized from the 11px Verdana metrics; right segment reserves room for the dot.
+        $leftWidth = (int) round(strlen($left) * 6 + 12);
         $rightWidth = (int) round(strlen($message) * 6 + 30);
         $width = $leftWidth + $rightWidth;
         $dotCx = $leftWidth + 11;
         $messageX = $leftWidth + 19 + (strlen($message) * 6) / 2;
 
-        return response(
-            '<svg xmlns="http://www.w3.org/2000/svg" width="'.$width.'" height="20" role="img" aria-label="'.$aria.'">'
+        return '<svg xmlns="http://www.w3.org/2000/svg" width="'.$width.'" height="20" role="img" aria-label="'.$aria.'" title="'.$title.'">'
             .'<title>'.$title.'</title>'
             .'<linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#fff" stop-opacity=".15"/><stop offset="1" stop-opacity="0"/></linearGradient>'
             .'<clipPath id="r"><rect width="'.$width.'" height="20" rx="3"/></clipPath>'
@@ -233,15 +278,12 @@ class StatusPageController extends Controller
             .'<rect x="'.$leftWidth.'" width="'.$rightWidth.'" height="20" fill="'.$color.'"/>'
             .'<rect width="'.$width.'" height="20" fill="url(#s)"/></g>'
             .'<g font-family="Verdana,DejaVu Sans,sans-serif" font-size="11">'
-            .'<text x="'.($leftWidth / 2).'" y="15" fill="#010101" fill-opacity=".3" text-anchor="middle">status</text>'
-            .'<text x="'.($leftWidth / 2).'" y="14" fill="#fff" text-anchor="middle">status</text>'
+            .'<text x="'.($leftWidth / 2).'" y="15" fill="#010101" fill-opacity=".3" text-anchor="middle">'.htmlspecialchars($left, ENT_QUOTES).'</text>'
+            .'<text x="'.($leftWidth / 2).'" y="14" fill="#fff" text-anchor="middle">'.htmlspecialchars($left, ENT_QUOTES).'</text>'
             .'<circle cx="'.$dotCx.'" cy="10" r="4" fill="#fff" opacity=".9">'
             .'<animate attributeName="opacity" values="1;.35;1" dur="1.6s" repeatCount="indefinite"/></circle>'
             .'<text x="'.$messageX.'" y="15" fill="#010101" fill-opacity=".3" text-anchor="middle">'.htmlspecialchars($message, ENT_QUOTES).'</text>'
             .'<text x="'.$messageX.'" y="14" fill="#fff" text-anchor="middle">'.htmlspecialchars($message, ENT_QUOTES).'</text>'
-            .'</g></svg>',
-            200,
-            ['Content-Type' => 'image/svg+xml', 'Cache-Control' => 'public, max-age=30']
-        );
+            .'</g></svg>';
     }
 }
