@@ -2,6 +2,7 @@
 
 namespace App\Services\Status;
 
+use App\Enums\Status\CheckResultStatus;
 use App\Enums\Status\MaintenanceStatus;
 use App\Enums\Status\ServiceStatus;
 use App\Models\Status\StatusIncident;
@@ -10,6 +11,7 @@ use App\Models\Status\StatusService;
 use App\Models\Status\StatusServiceGroup;
 use App\Models\Status\StatusSetting;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 /**
  * Cached public status payload. All public pages and the polling
@@ -118,6 +120,54 @@ class PublicStatusService
                 'incidents' => $incidents->map(fn ($incident) => $this->incidentRow($incident))->all(),
             ];
         });
+    }
+
+    /**
+     * Failed checks for one service + date, backing the public per-day
+     * drill-down (?date= on the service page). Uncached on purpose:
+     * request-specific and a single capped, indexed query.
+     *
+     * @return array{date: string, has_data: bool, total: int, failed: int, truncated: bool, records_expired: bool, checks: list<array{at: ?string, status: string, http: ?int, ms: ?int, error: ?string, message: ?string, assertions: list<array{assertion: string, message: string}>}>}
+     */
+    public function dayFailures(StatusService $service, string $date, int $limit = 50): array
+    {
+        $stat = $service->dailyStats()->whereDate('date', $date)->first();
+
+        $failed = $service->checks()
+            ->whereDate('checked_at', $date)
+            ->where('success', false)
+            ->whereNot('status', CheckResultStatus::Maintenance)
+            ->orderByDesc('checked_at')
+            ->orderByDesc('id')
+            ->limit($limit + 1)
+            ->get(['checked_at', 'status', 'http_status', 'response_time', 'error_type', 'error_message', 'assertion_result']);
+
+        $truncated = $failed->count() > $limit;
+
+        $checks = $failed->take($limit)->map(fn ($check) => [
+            'at' => setting_time($check->checked_at, 'M j, H:i:s'),
+            'status' => $check->status->value,
+            'http' => $check->http_status,
+            'ms' => $check->response_time,
+            'error' => $check->error_type?->label(),
+            'message' => $check->error_message ? Str::limit($check->error_message, 200) : null,
+            'assertions' => collect($check->assertion_result['failures'] ?? [])->map(fn ($failure) => [
+                'assertion' => (string) ($failure['assertion'] ?? 'assertion'),
+                'message' => (string) ($failure['message'] ?? ''),
+            ])->all(),
+        ])->all();
+
+        $failedCount = $stat ? ((int) $stat->total_checks - (int) $stat->successful_checks) : 0;
+
+        return [
+            'date' => $date,
+            'has_data' => $stat !== null,
+            'total' => (int) ($stat?->total_checks ?? 0),
+            'failed' => $failedCount,
+            'truncated' => $truncated,
+            'records_expired' => $stat !== null && $failedCount > 0 && $checks === [],
+            'checks' => $checks,
+        ];
     }
 
     /**

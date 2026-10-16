@@ -11,6 +11,7 @@ use App\Models\Status\StatusSetting;
 use App\Models\Status\StatusSubscriber;
 use App\Services\Status\PublicStatusService;
 use App\Services\Status\StatusMailConfig;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Throwable;
 
 class StatusPageController extends Controller
 {
@@ -35,13 +37,43 @@ class StatusPageController extends Controller
         return view('status.index', $payload);
     }
 
-    public function showService(StatusService $service): View
+    public function showService(StatusService $service, Request $request): View
     {
         $this->ensurePublicEnabled();
 
         abort_unless($service->is_public, 404);
 
-        return view('status.service', $this->public->servicePayload($service));
+        $payload = $this->public->servicePayload($service);
+        $payload['day_detail'] = $this->dayDetail($service, $request, (int) $payload['window_days']);
+
+        return view('status.service', $payload);
+    }
+
+    /**
+     * Validate the ?date= drill-down param against the displayed window.
+     * Out-of-range or malformed dates are a 404, not a silent ignore.
+     */
+    private function dayDetail(StatusService $service, Request $request, int $window): ?array
+    {
+        $raw = $request->query('date');
+
+        if (! is_string($raw) || trim($raw) === '') {
+            return null;
+        }
+
+        try {
+            $parsed = Carbon::createFromFormat('Y-m-d', trim($raw));
+        } catch (Throwable) {
+            abort(404);
+        }
+
+        $date = $parsed->toDateString();
+
+        if ($date !== trim($raw) || $parsed->isFuture() || $date < now()->subDays($window - 1)->toDateString()) {
+            abort(404);
+        }
+
+        return $this->public->dayFailures($service, $date);
     }
 
     public function showIncident(StatusIncident $incident): View
