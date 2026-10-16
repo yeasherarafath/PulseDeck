@@ -4,6 +4,7 @@ namespace Tests\Feature\Status;
 
 use App\Enums\Status\CheckErrorType;
 use App\Enums\Status\CheckResultStatus;
+use App\Enums\Status\ServiceStatus;
 use App\Models\Status\StatusDailyStat;
 use App\Models\Status\StatusService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -37,6 +38,28 @@ class ServiceDayIssuesTest extends TestCase
 
         $response->assertOk();
         $response->assertSee(route('status.services.show', ['service' => $service->slug, 'date' => $date]), false);
+    }
+
+    public function test_status_badge_is_two_segment_with_pulsing_dot(): void
+    {
+        $service = StatusService::factory()->create(['is_public' => true]);
+
+        $service->checks()->create([
+            'success' => true,
+            'status' => CheckResultStatus::Operational,
+            'http_status' => 200,
+            'response_time' => 120,
+            'checked_at' => now(),
+        ]);
+        $service->forceFill(['current_status' => ServiceStatus::Operational])->save();
+
+        $response = $this->get('/status/badge.svg');
+
+        $response->assertOk()->assertHeader('Content-Type', 'image/svg+xml');
+        $response->assertSee('clipPath', false);
+        $response->assertSee('operational', false);
+        $response->assertSee('<animate', false);
+        $response->assertSee('<title>', false);
     }
 
     public function test_day_detail_lists_failed_checks_with_errors(): void

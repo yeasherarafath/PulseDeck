@@ -200,14 +200,46 @@ class StatusPageController extends Controller
             'unknown' => '#868e96',
         ];
 
-        $color = $colors[$payload['status']] ?? $colors['unknown'];
-        $label = htmlspecialchars($payload['status_label'], ENT_QUOTES);
+        // Short, badge-sized wording (the full sentence stays in aria-label).
+        $short = [
+            'operational' => 'operational',
+            'degraded' => 'degraded',
+            'partial_outage' => 'partial outage',
+            'major_outage' => 'major outage',
+            'maintenance' => 'maintenance',
+            'unknown' => 'unknown',
+        ];
+
+        $status = $payload['status'];
+        $color = $colors[$status] ?? $colors['unknown'];
+        $message = $short[$status] ?? $short['unknown'];
+        $siteName = (string) setting('app_name', config('app.name', 'Status'));
+        $title = htmlspecialchars($siteName.' status: '.$message, ENT_QUOTES);
+        $aria = htmlspecialchars('status: '.$payload['status_label'], ENT_QUOTES);
+
+        // Shields-style two-segment badge, sized from the 11px Verdana metrics.
+        $leftWidth = (int) round(strlen('status') * 6 + 12);
+        $rightWidth = (int) round(strlen($message) * 6 + 30);
+        $width = $leftWidth + $rightWidth;
+        $dotCx = $leftWidth + 11;
+        $messageX = $leftWidth + 19 + (strlen($message) * 6) / 2;
 
         return response(
-            '<svg xmlns="http://www.w3.org/2000/svg" width="220" height="28" role="img" aria-label="'.$label.'">'
-            .'<rect width="220" height="28" rx="6" fill="'.$color.'"/>'
-            .'<text x="110" y="18" text-anchor="middle" fill="#fff" font-family="sans-serif" font-size="12">'.$label.'</text>'
-            .'</svg>',
+            '<svg xmlns="http://www.w3.org/2000/svg" width="'.$width.'" height="20" role="img" aria-label="'.$aria.'">'
+            .'<title>'.$title.'</title>'
+            .'<linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#fff" stop-opacity=".15"/><stop offset="1" stop-opacity="0"/></linearGradient>'
+            .'<clipPath id="r"><rect width="'.$width.'" height="20" rx="3"/></clipPath>'
+            .'<g clip-path="url(#r)"><rect width="'.$leftWidth.'" height="20" fill="#555"/>'
+            .'<rect x="'.$leftWidth.'" width="'.$rightWidth.'" height="20" fill="'.$color.'"/>'
+            .'<rect width="'.$width.'" height="20" fill="url(#s)"/></g>'
+            .'<g font-family="Verdana,DejaVu Sans,sans-serif" font-size="11">'
+            .'<text x="'.($leftWidth / 2).'" y="15" fill="#010101" fill-opacity=".3" text-anchor="middle">status</text>'
+            .'<text x="'.($leftWidth / 2).'" y="14" fill="#fff" text-anchor="middle">status</text>'
+            .'<circle cx="'.$dotCx.'" cy="10" r="4" fill="#fff" opacity=".9">'
+            .'<animate attributeName="opacity" values="1;.35;1" dur="1.6s" repeatCount="indefinite"/></circle>'
+            .'<text x="'.$messageX.'" y="15" fill="#010101" fill-opacity=".3" text-anchor="middle">'.htmlspecialchars($message, ENT_QUOTES).'</text>'
+            .'<text x="'.$messageX.'" y="14" fill="#fff" text-anchor="middle">'.htmlspecialchars($message, ENT_QUOTES).'</text>'
+            .'</g></svg>',
             200,
             ['Content-Type' => 'image/svg+xml', 'Cache-Control' => 'public, max-age=30']
         );
