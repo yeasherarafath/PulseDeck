@@ -146,7 +146,7 @@
                                 <div class="form-hint mt-2">
                                     5 parts: <code>minute hour day(month) month day(week)</code> — e.g. <code>*/5 * * * *</code> (every 5 min),
                                     <code>0 9 * * 1-5</code> (weekdays 09:00). Times run in <strong>{{ setting('timezone', 'UTC') }}</strong>.
-                                    <a href="https://crontab.guru/" target="_blank" rel="noopener">Cron helper ↗</a>
+                                    <a href="https://newisty.com/cron-expresson-generator" target="_blank" rel="noopener">Cron helper ↗</a>
                                     @if (!empty($cronNextRun))
                                         <br />Next run: <strong>{{ $cronNextRun->setTimezone(setting_timezone())->format('M j, H:i T') }}</strong>
                                     @endif
