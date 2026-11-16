@@ -13,6 +13,7 @@
     $authType = old('auth.type', $authData['type'] ?? 'none');
     $bodyType = old('body_type', $service?->request_body_type?->value ?? 'none');
     $scheduleType = $scheduleType ?? old('schedule_type', 'interval');
+    $isCronSchedule = $scheduleType === ScheduleType::Cron->value;
 @endphp
 
 @if ($errors->any())
@@ -93,12 +94,12 @@
                             </div>
                             <div class="form-hint">Fixed interval runs every N minutes/hours/days/weeks/months/years. Cron runs on a 5-part schedule (dispatcher ticks every minute).</div>
                         </div>
-                        <div class="col-12" data-schedule-panel="interval">
+                        <div class="col-12 @if ($isCronSchedule) d-none @endif" data-schedule-panel="interval">
                             <div class="card card-body bg-light">
                                 <div class="row g-2 align-items-end">
                                     <div class="col-md-4">
                                         <label class="form-label required" for="f-interval-value">Every</label>
-                                        <input type="number" class="form-control @error('interval_value') is-invalid @enderror @error('check_interval') is-invalid @enderror" id="f-interval-value" name="interval_value" value="{{ $intervalValue ?? old('interval_value', 5) }}" min="1" max="1000000" required />
+                                        <input type="number" class="form-control @error('interval_value') is-invalid @enderror @error('check_interval') is-invalid @enderror" id="f-interval-value" name="interval_value" value="{{ $intervalValue ?? old('interval_value', 5) }}" min="1" max="1000000" @required(! $isCronSchedule) />
                                         @error('interval_value')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                         @error('check_interval')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                     </div>
@@ -124,12 +125,12 @@
                                 <input type="hidden" name="check_interval" value="{{ old('check_interval', $service?->check_interval ?? setting('default_check_interval', 300)) }}" data-interval-legacy />
                             </div>
                         </div>
-                        <div class="col-12 d-none" data-schedule-panel="cron">
+                        <div class="col-12 @unless ($isCronSchedule) d-none @endunless" data-schedule-panel="cron">
                             <div class="card card-body bg-light">
                                 <div class="row g-2 align-items-end">
                                     <div class="col-md-6">
                                         <label class="form-label required" for="f-cron">Cron expression</label>
-                                        <input type="text" class="form-control font-monospace @error('cron_expression') is-invalid @enderror" id="f-cron" name="cron_expression" value="{{ $cronExpression ?? old('cron_expression', '') }}" placeholder="*/5 * * * *" spellcheck="false" autocomplete="off" />
+                                        <input type="text" class="form-control font-monospace @error('cron_expression') is-invalid @enderror" id="f-cron" name="cron_expression" value="{{ $cronExpression ?? old('cron_expression', '') }}" placeholder="*/5 * * * *" spellcheck="false" autocomplete="off" @required($isCronSchedule) />
                                         @error('cron_expression')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                     </div>
                                     <div class="col-md-6">

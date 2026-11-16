@@ -395,10 +395,26 @@ function initSchedule() {
         return `${total} seconds`;
     };
 
-    const sync = () => {
+    const sync = (focusCron = false) => {
         const active = form.querySelector('input[name="schedule_type"]:checked')?.value ?? 'interval';
-        intervalPanel.classList.toggle('d-none', active !== 'interval');
-        cronPanel.classList.toggle('d-none', active !== 'cron');
+        const cronMode = active === 'cron';
+
+        intervalPanel.classList.toggle('d-none', cronMode);
+        cronPanel.classList.toggle('d-none', !cronMode);
+
+        // Required follows the visible panel so assistive tech and native
+        // (non-novalidate) submits point at the field that actually matters.
+        if (valueInput) {
+            valueInput.required = !cronMode;
+        }
+
+        if (cronInput) {
+            cronInput.required = cronMode;
+
+            if (cronMode && focusCron && cronInput.value.trim() === '') {
+                cronInput.focus();
+            }
+        }
 
         const raw = seconds();
         const total = Math.min(maxSeconds, Math.max(60, raw));
@@ -430,7 +446,7 @@ function initSchedule() {
         }
     };
 
-    typeRadios.forEach((radio) => radio.addEventListener('change', sync));
+    typeRadios.forEach((radio) => radio.addEventListener('change', () => sync(true)));
     valueInput?.addEventListener('input', sync);
     unitSelect?.addEventListener('change', sync);
 
@@ -450,23 +466,39 @@ function initSchedule() {
         sync();
     });
 
-    cronPreset?.addEventListener('change', () => {
-        if (cronInput && cronPreset.value) {
-            cronInput.value = cronPreset.value;
-        }
-    });
+    const cronPresetValues = [...(cronPreset?.options ?? [])]
+        .map((option) => option.value)
+        .filter(Boolean);
 
-    cronInput?.addEventListener('input', () => {
-        if (!cronPreset) {
+    const syncCronPreset = () => {
+        if (!cronPreset || !cronInput) {
             return;
         }
-        const match = [...cronPreset.options].some((option) => option.value === cronInput.value.trim());
-        if (!match) {
-            cronPreset.value = '';
+
+        const value = cronInput.value.trim();
+        cronPreset.value = cronPresetValues.includes(value) ? value : '';
+    };
+
+    cronPreset?.addEventListener('change', () => {
+        if (!cronInput) {
+            return;
         }
+
+        if (cronPreset.value) {
+            cronInput.value = cronPreset.value;
+        } else if (cronPresetValues.includes(cronInput.value.trim())) {
+            // "Custom…" picked: clear the preset-seeded expression so the
+            // user types their own instead of silently keeping the last one.
+            cronInput.value = '';
+        }
+
+        cronInput.focus();
     });
 
+    cronInput?.addEventListener('input', syncCronPreset);
+
     sync();
+    syncCronPreset();
 }
 
 /* ---------- test request ---------- */
